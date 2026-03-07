@@ -3,7 +3,7 @@
 
 \documentclass[11pt, a4paper]{article}
 
-% ─── Packages ────────────────────────────────────────────────────────────────
+% --- Packages ----------------------------------------------------------------
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
 \usepackage[margin=2.5cm]{geometry}
@@ -15,7 +15,7 @@
 \usepackage{listings}       % code listings
 \hypersetup{colorlinks=true, linkcolor=black, citecolor=black, urlcolor=blue!70!black}
 
-% ─── Code listing style ─────────────────────────────────────────────────────
+% --- Code listing style -----------------------------------------------------
 \lstset{
     basicstyle=\ttfamily\small,
     breaklines=true,
@@ -27,24 +27,24 @@
 }
 % Pro tip: for syntax highlighting, look into the 'minted' package.
 
-% ─── Bibliography ────────────────────────────────────────────────────────────
+% --- Bibliography ------------------------------------------------------------
 \usepackage[style=numeric, backend=bibtex]{biblatex}
 \addbibresource{references.bib}
 
-% ─── Language (swap to lang/sk for Slovak) ───────────────────────────────────
+% --- Language (swap to lang/sk for Slovak) -----------------------------------
 \input{lang/en}
 
-% ─── Student details ─────────────────────────────────────────────────────────
-\newcommand{\StudentName}{Arthur Dent, Alice Cooper}
-\newcommand{\StudyGroup}{Tuesday 11:00}
-\newcommand{\AssignmentNumber}{0}
-\newcommand{\AssignmentTitle}{Template Showcase}
+% --- Student details ---------------------------------------------------------
+\newcommand{\StudentName}{Bohdan Karpenko, Arseniy Malyuk, Oleksii Khmelevskyi}
+\newcommand{\StudyGroup}{Wednesday 14:00}
+\newcommand{\AssignmentNumber}{1}
+\newcommand{\AssignmentTitle}{Cinema}
 \newcommand{\AcademicYear}{2025/2026}
 
 % =============================================================================
 \begin{document}
 
-% ─── Cover page ──────────────────────────────────────────────────────────────
+% --- Cover page --------------------------------------------------------------
 \begin{titlepage}
     \centering
 
@@ -75,7 +75,7 @@
     \vspace{1.5cm}
 \end{titlepage}
 
-% ─── Table of contents ───────────────────────────────────────────────────────
+% --- Table of contents -------------------------------------------------------
 \renewcommand{\contentsname}{\LabelContents}
 \tableofcontents
 \newpage
@@ -87,7 +87,7 @@
 % Template source: https://github.com/FIIT-Databases/assignment-template
 % =============================================================================
 
-\section{Analysis}
+\section{Specification}
 \label{sec:analysis}
 
 The goal of this project was to create a submission template for the DBS
@@ -98,7 +98,7 @@ Overleaf guide \cite{overleaf-docs} covers everything you need in about 30 minut
 
 The template repository is available at \cite{template-repo}.
 
-% ── Subsections ──────────────────────────────────────────────────────────────
+% -- Subsections --------------------------------------------------------------
 % Use \subsection{} and \subsubsection{} when you need more structure.
 
 \subsection{Requirements}
@@ -123,13 +123,13 @@ When listing ordered steps, use \texttt{enumerate} instead:
 
 
 \newpage
-\section{Proposal}
+\section{Defining user scenarios}
 \label{sec:proposal}
 
 We compared a few approaches before settling on the current structure.
 Table~\ref{tab:comparison} summarizes our options.
 
-% ── Tables ───────────────────────────────────────────────────────────────────
+% -- Tables -------------------------------------------------------------------
 % Use \begin{table}[H] to place the table exactly here.
 % Label it with \label{} and reference it with Table~\ref{}.
 
@@ -157,14 +157,14 @@ We found this less stressful than debugging \LaTeX{} table alignment.
 
 
 \newpage
-\section{Implementation}
+\section{Proposal for a relational model}
 \label{sec:implementation}
 
 The template lives in a simple directory structure with localization files
 separated from the main document. Switching language requires changing one
 line:
 
-% ── Code listings ────────────────────────────────────────────────────────────
+% -- Code listings ------------------------------------------------------------
 % Use lstlisting for short code snippets.
 
 \begin{lstlisting}[language=TeX, caption={Switching language in the preamble}]
@@ -185,7 +185,7 @@ GROUP BY s.name
 ORDER BY submission_count DESC;
 \end{lstlisting}
 
-% ── Inline code ──────────────────────────────────────────────────────────────
+% -- Inline code --------------------------------------------------------------
 % Use \texttt{} for inline code: \texttt{SELECT * FROM ...}
 
 References to tables, figures, and sections are automatic. For example,
@@ -194,7 +194,7 @@ Table~\ref{tab:comparison}, and the faculty logo is shown in
 Figure~\ref{fig:logo} in Attachment~\ref{sec:attachment-a1}.
 If you add or reorder content, the numbers update on the next build.
 
-% ── Citations ────────────────────────────────────────────────────────────────
+% -- Citations ----------------------------------------------------------------
 % Add entries to references.bib, then cite them with \cite{key}.
 % The bibliography at the end is generated automatically.
 
@@ -204,22 +204,22 @@ in \cite{elmasri2016}. For PostgreSQL-specific syntax, see
 
 
 \newpage
-\section{Challenges}
-\label{sec:challenges}
+% \section{Conclusion }
+% \label{sec:challenges}
 
-The main challenge was keeping the template simple enough that a student
-seeing \LaTeX{} for the first time would not immediately close the file.
-We solved this by limiting the preamble to essential packages and
-putting all examples in one place --- this document.
+% The main challenge was keeping the template simple enough that a student
+% seeing \LaTeX{} for the first time would not immediately close the file.
+% We solved this by limiting the preamble to essential packages and
+% putting all examples in one place --- this document.
 
-We also learned that BibTeX interprets \texttt{@} signs in comments as
-entry types, which caused confusing errors. Small things like this are
-easy to fix once you know about them, but hard to debug the first time\footnote{A
-group of frogs is called an ``army.'' A group of students debugging BibTeX at
-2\,AM is called ``Tuesday.''}.
+% We also learned that BibTeX interprets \texttt{@} signs in comments as
+% entry types, which caused confusing errors. Small things like this are
+% easy to fix once you know about them, but hard to debug the first time\footnote{A
+% group of frogs is called an ``army.'' A group of students debugging BibTeX at
+% 2\,AM is called ``Tuesday.''}.
 
 
-\newpage
+% \newpage
 \section{Conclusion}
 \label{sec:conclusion}
 
@@ -231,36 +231,36 @@ are likely to need.
 For anything not covered here, the Overleaf documentation
 \cite{overleaf-docs} is an excellent reference.
 
-% ─── Bibliography ────────────────────────────────────────────────────────────
+% --- Bibliography ------------------------------------------------------------
 \printbibliography
 
-% ─── Attachments ─────────────────────────────────────────────────────────────
+% --- Attachments -------------------------------------------------------------
 \newpage
 \appendix
 
-\section{Sample figures}
-\label{sec:attachment-a1}
+% \section{Sample figures}
+% \label{sec:attachment-a1}
 
-% ── Figures ──────────────────────────────────────────────────────────────────
-% Use \begin{figure}[H] to place the figure exactly here.
-% Label it with \label{} and reference it with Figure~\ref{}.
-% Keep images in the assets/ directory.
+% % -- Figures ------------------------------------------------------------------
+% % Use \begin{figure}[H] to place the figure exactly here.
+% % Label it with \label{} and reference it with Figure~\ref{}.
+% % Keep images in the assets/ directory.
 
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.25\textwidth]{../assets/logo}
-    \caption{Faculty logo used on the cover page}
-    \label{fig:logo}
-\end{figure}
+% \begin{figure}[H]
+%     \centering
+%     \includegraphics[width=0.25\textwidth]{../assets/logo}
+%     \caption{Faculty logo used on the cover page}
+%     \label{fig:logo}
+% \end{figure}
 
-Place your diagrams, screenshots, and other supporting images in this
-section. Reference them from the main text using
-\texttt{Figure\~{}\textbackslash ref\{fig:logo\}}.
+% Place your diagrams, screenshots, and other supporting images in this
+% section. Reference them from the main text using
+% \texttt{Figure\~{}\textbackslash ref\{fig:logo\}}.
 
-Some frogs can absorb water through a patch of skin on their belly called a
-``drinking patch'' --- they literally sit in puddles to hydrate. This has
-nothing to do with databases but is objectively more interesting than
-anything on this page.
+% Some frogs can absorb water through a patch of skin on their belly called a
+% ``drinking patch'' --- they literally sit in puddles to hydrate. This has
+% nothing to do with databases but is objectively more interesting than
+% anything on this page.
 
 % You can control the image size with the width parameter:
 %   width=0.5\textwidth   ... half the page width
