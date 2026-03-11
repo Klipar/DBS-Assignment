@@ -199,10 +199,6 @@ its heart stops, it stops breathing, and in spring it just thaws and hops away.
 We found this less stressful than debugging \LaTeX{} table alignment.
 
 
-\newpage
-\section{Proposal for a relational model}
-\label{sec:implementation}
-
 The template lives in a simple directory structure with localization files
 separated from the main document. Switching language requires changing one
 line:
@@ -260,6 +256,260 @@ in \cite{elmasri2016}. For PostgreSQL-specific syntax, see
 % easy to fix once you know about them, but hard to debug the first time\footnote{A
 % group of frogs is called an ``army.'' A group of students debugging BibTeX at
 % 2\,AM is called ``Tuesday.''}.
+
+\newpage
+\section{Design of the Relational Model}
+\label{sec:implementation}
+
+\subsection{Relational Model Diagram}
+
+\includegraphics[width=1\textwidth]{../assets/UML}
+
+\subsection{Table Descriptions}
+
+All primary keys are surrogate keys of type \texttt{SMALLSERIAL}. This approach provides better performance for joins and ensures that the primary identifier remains immutable even if business data (such as a film title or employee name) changes.
+
+\bigskip
+
+% 1. STAFF
+\textbf{Table: Staff} \\
+\textit{Purpose:} Stores information about employees.
+\begin{itemize}
+    \item \textbf{Attributes:}
+    \begin{itemize}
+        \item \texttt{id} (\texttt{SMALLSERIAL}): PK, NOT NULL. Unique identifier.
+        \item \texttt{name} (\texttt{VARCHAR(32)}): NOT NULL.
+        \item \texttt{surname} (\texttt{VARCHAR(32)}): NOT NULL.
+        \item \texttt{age} (\texttt{SMALLINT}): CHECK (age $\ge$ 15).
+        \item \texttt{position} (\texttt{ENUM}): NOT NULL. Role within the cinema.
+        \item \texttt{working\_since} (\texttt{DATE}): DEFAULT CURRENT\_DATE.
+    \end{itemize}
+    \item \textbf{PK Choice:} Artificial (\texttt{id}). Natural keys (name + surname) are non-unique.
+\end{itemize}
+
+% 2. SHIFT
+\textbf{Table: Shift} \\
+\textit{Purpose:} Logs the working hours assigned to specific staff members.
+\begin{itemize}
+    \item \textbf{Attributes:}
+    \begin{itemize}
+        \item \texttt{id} (\texttt{SMALLSERIAL}): PK, NOT NULL. Unique identifier.
+        \item \texttt{description} (\texttt{VARCHAR(512)}): Description of work for shift.
+        \item \texttt{start\_time} (\texttt{TIMESTAMP}): NOT NULL.
+        \item \texttt{end\_time} (\texttt{TIMESTAMP}): NOT NULL, CHECK (end\_time $>$ start\_time).
+        \item \texttt{staff\_id} (\texttt{SMALLINT}): FK, NOT NULL. References \texttt{Staff(id)}.
+    \end{itemize}
+    \item \textbf{PK Choice:} Artificial (\texttt{id}).
+\end{itemize}
+
+% 3. SHIFTSCREENING
+\textbf{Table: ShiftScreening} \\
+\textit{Purpose:} Junction table realizing the M:N relationship between Shifts and Screenings.
+\begin{itemize}
+    \item \textbf{Attributes:}
+    \begin{itemize}
+        \item \texttt{id} (\texttt{SMALLSERIAL}): PK, NOT NULL. Unique identifier.
+        \item \texttt{shift\_id} (\texttt{SMALLINT}): FK, NOT NULL. References \texttt{Shift(id)}.
+        \item \texttt{screening\_id} (\texttt{SMALLINT}): FK, NOT NULL. References \texttt{Screening(id)}.
+    \end{itemize}
+\end{itemize}
+
+% 4. SCREENING
+\textbf{Table: Screening} \\
+\textit{Purpose:} Represents a specific instance of a film being shown in a hall.
+\begin{itemize}
+    \item \textbf{Attributes:}
+    \begin{itemize}
+        \item \texttt{id} (\texttt{SMALLSERIAL}): PK, NOT NULL. Unique identifier.
+        \item \texttt{start\_time} (\texttt{TIMESTAMP}): NOT NULL.
+        \item \texttt{language} (\texttt{ENUM}): Audio/Subtitle configuration.
+        \item \texttt{film\_id} (\texttt{SMALLINT}): FK, NOT NULL. References \texttt{Film(id)}.
+        \item \texttt{hall\_id} (\texttt{SMALLINT}): FK, NOT NULL. References \texttt{Hall(id)}.
+    \end{itemize}
+    \item \textbf{PK Choice:} Artificial (\texttt{id}).
+\end{itemize}
+
+% 5. HALL
+\textbf{Table: Hall} \\
+\textit{Purpose:} Defines the physical spaces where screenings occur.
+\begin{itemize}
+    \item \textbf{Attributes:}
+    \begin{itemize}
+        \item \texttt{id} (\texttt{SMALLSERIAL}): PK, NOT NULL. Unique identifier.
+        \item \texttt{name} (\texttt{VARCHAR(16)}): UNIQUE, NOT NULL.
+        \item \texttt{capacity} (\texttt{SMALLINT}): NOT NULL, CHECK (capacity $>$ 0).
+    \end{itemize}
+    \item \textbf{PK Choice:} Artificial (\texttt{id}). Allows for renaming halls without breaking relations.
+\end{itemize}
+
+% 6. SALE
+\textbf{Table: Sale} \\
+\textit{Purpose:} Records ticket transactions and customer data.
+\begin{itemize}
+    \item \textbf{Attributes:}
+    \begin{itemize}
+        \item \texttt{id} (\texttt{SMALLSERIAL}): PK, NOT NULL. Unique identifier.
+        \item \texttt{customer\_name} (\texttt{VARCHAR(32)}): NOT NULL.
+        \item \texttt{customer\_surname} (\texttt{VARCHAR(32)}): NOT NULL.
+        \item \texttt{customer\_age} (\texttt{SMALLINT}): CHECK (customer\_age $\ge$ 0).
+        \item \texttt{screening\_id} (\texttt{SMALLINT}): FK, NOT NULL. References \texttt{Screening(id)}.
+    \end{itemize}
+    \item \textbf{PK Choice:} Artificial (\texttt{id}).
+\end{itemize}
+
+% 7. FILM
+\textbf{Table: Film} \\
+\textit{Purpose:} Stores information about films that have been, are, and will be shown in the cinema.
+\begin{itemize}
+    \item \textbf{Attributes:}
+    \begin{itemize}
+        \item \texttt{id} (\texttt{SMALLSERIAL}): PK, NOT NULL. Unique identifier.
+        \item \texttt{name} (\texttt{VARCHAR(256)}): NOT NULL.
+        \item \texttt{duration} (\texttt{SMALLINT}): NOT NULL, CHECK (duration $>$ 0).
+        \item \texttt{age\_group} (\texttt{ENUM}): Rating for content suitability.
+    \end{itemize}
+    \item \textbf{PK Choice:} Artificial (\texttt{id}). Film titles can be remade or duplicated.
+\end{itemize}
+
+% 8. ACTORFILM
+\textbf{Table: ActorFilm} \\
+\textit{Purpose:} Junction table realizing the M:N relationship between Actors and Films.
+\begin{itemize}
+    \item \textbf{Attributes:}
+    \begin{itemize}
+        \item \texttt{id} (\texttt{SMALLSERIAL}): PK, NOT NULL. Unique identifier.
+        \item \texttt{actor\_id} (\texttt{SMALLINT}): FK, NOT NULL. References \texttt{Actor(id)}.
+        \item \texttt{film\_id} (\texttt{SMALLINT}): FK, NOT NULL. References \texttt{Film(id)}.
+    \end{itemize}
+\end{itemize}
+
+% 9. ACTOR
+\textbf{Table: Actor} \\
+\textit{Purpose:} Stores information about actors participating in films.
+\begin{itemize}
+    \item \textbf{Attributes:}
+    \begin{itemize}
+        \item \texttt{id} (\texttt{SMALLSERIAL}): PK, NOT NULL. Unique identifier.
+        \item \texttt{name} (\texttt{VARCHAR(32)}): NOT NULL.
+        \item \texttt{surname} (\texttt{VARCHAR(32)}): NOT NULL.
+    \end{itemize}
+    \item \textbf{PK Choice:} Artificial (\texttt{id}). Natural keys (name + surname) are non-unique.
+\end{itemize}
+
+% 10. FILMGENRE
+\textbf{Table: FilmGenre} \\
+\textit{Purpose:} Junction table realizing the M:N relationship between Films and Genres.
+\begin{itemize}
+    \item \textbf{Attributes:}
+    \begin{itemize}
+        \item \texttt{id} (\texttt{SMALLSERIAL}): PK, NOT NULL.
+        \item \texttt{film\_id} (\texttt{SMALLINT}): FK, NOT NULL. References \texttt{Film(id)}.
+        \item \texttt{genre\_id} (\texttt{SMALLINT}): FK, NOT NULL. References \texttt{Genre(id)}.
+    \end{itemize}
+\end{itemize}
+
+% 11. GENRE
+\textbf{Table: Genre} \\
+\textit{Purpose:} A dictionary table for film genre categories.
+\begin{itemize}
+    \item \textbf{Attributes:}
+    \begin{itemize}
+        \item \texttt{id} (\texttt{SMALLSERIAL}): PK, NOT NULL.
+        \item \texttt{name} (\texttt{VARCHAR(32)}): UNIQUE, NOT NULL.
+    \end{itemize}
+    \item \textbf{PK Choice:} Artificial (\texttt{id}).
+\end{itemize}
+
+% 12. FILMSTUDIO
+\textbf{Table: FilmStudio} \\
+\textit{Purpose:} Junction table realizing the M:N relationship between Films and Studios.
+\begin{itemize}
+    \item \textbf{Attributes:}
+    \begin{itemize}
+        \item \texttt{id} (\texttt{SMALLSERIAL}): PK, NOT NULL.
+        \item \texttt{film\_id} (\texttt{SMALLINT}): FK, NOT NULL. References \texttt{Film(id)}.
+        \item \texttt{studio\_id} (\texttt{SMALLINT}): FK, NOT NULL. References \texttt{Studio(id)}.
+    \end{itemize}
+\end{itemize}
+
+% 13. STUDIO
+\textbf{Table: Studio} \\
+\textit{Purpose:} Stores information about film production studios.
+\begin{itemize}
+    \item \textbf{Attributes:}
+    \begin{itemize}
+        \item \texttt{id} (\texttt{SMALLSERIAL}): PK, NOT NULL.
+        \item \texttt{name} (\texttt{VARCHAR(32)}): UNIQUE, NOT NULL.
+    \end{itemize}
+    \item \textbf{PK Choice:} Artificial (\texttt{id}).
+\end{itemize}
+
+\newpage
+\subsection{Description of Relationships}
+
+\begin{table}[h]
+\centering
+\small
+\begin{tabular}{|l|c|l|c|l|}
+\hline
+\textbf{Relationship} & \textbf{Type} & \textbf{Physical Realization} & \textbf{Optionality} \\ \hline
+Staff $\rightarrow$ Shift & 1:N & FK in Shift & Optional \\
+Shift $\rightarrow$ ShiftScreening & 1:N & FK in ShiftScreening & Optional \\
+Screening $\rightarrow$ ShiftScreening & 1:N & FK in ShiftScreening & Optional \\
+Hall $\rightarrow$ Screening & 1:N & FK in Screening & Optional \\
+Screening $\rightarrow$ Sale & 1:N & FK in Sale & Optional \\
+Film $\rightarrow$ Screening & 1:N & FK in Screening & Optional \\
+Film $\rightarrow$ ActorFilm & 1:N & FK in ActorFilm & Optional \\
+Actor $\rightarrow$ ActorFilm & 1:N & FK in ActorFilm & Mandatory \\
+Film $\rightarrow$ FilmGenre & 1:N & FK in FilmGenre & Mandatory \\
+Genre $\rightarrow$ FilmGenre & 1:N & FK in FilmGenre & Mandatory \\
+Film $\rightarrow$ FilmStudio & 1:N & FK in FilmStudio & Mandatory \\
+Studio $\rightarrow$ FilmStudio & 1:N & FK in FilmStudio & Mandatory \\
+\hline
+\end{tabular}
+\end{table}
+
+\subsubsection{Referential Integrity: ON DELETE Actions}
+
+\begin{table}[h]
+\centering
+\small
+\begin{tabular}{|l|l|}
+\hline
+\textbf{Table} & \textbf{ON DELETE Action} \\ \hline
+\texttt{Staff} & \texttt{RESTRICT} \\ \hline
+\texttt{Shift} & \texttt{RESTRICT} \\ \hline
+\texttt{ShiftScreening} & \texttt{RESTRICT} \\ \hline
+\texttt{Screening} & \texttt{RESTRICT} \\ \hline
+\texttt{Hall} & \texttt{RESTRICT} \\ \hline
+\texttt{Sale} & \texttt{RESTRICT} \\ \hline
+\texttt{Film} & \texttt{RESTRICT} \\ \hline
+\texttt{ActorFilm} & \texttt{RESTRICT} \\ \hline
+\texttt{Actor} & \texttt{RESTRICT} \\ \hline
+\texttt{FilmGenre} & \texttt{RESTRICT} \\ \hline
+\texttt{Genre} & \texttt{RESTRICT} \\ \hline
+\texttt{FilmStudio} & \texttt{RESTRICT} \\ \hline
+\texttt{Studio} & \texttt{RESTRICT} \\ \hline
+\end{tabular}
+\end{table}
+
+\subsection{Integrity Constraints Realization}
+The integrity constraints from Chapter 2 are enforced as follows:
+\begin{itemize}
+    \item \textbf{Entity Integrity} guaranteed by \texttt{PRIMARY KEY} constraints on all \texttt{id} columns.
+    \item \textbf{Referential Integrity} enforced via \texttt{FOREIGN KEY} constraints. For example, a \texttt{Sale} cannot exist without a valid \texttt{Screening}.
+    \item \textbf{Domain Integrity} ensured by data types (\texttt{DATE}, \texttt{TIMESTAMP}) and \texttt{CHECK} constraints (e.g., verifying that a movie duration is positive).
+\end{itemize}
+
+\subsection{User Scenario Verification}
+
+The proposed relational model fully supports the required system functionality:
+
+\begin{itemize}
+    \item \textbf{Purchasing \& Information (Scenarios 1, 2, 6):} Handled by \texttt{Film}, \texttt{Screening}, and \texttt{Sale} tables. Metadata (actors, genres, studios) is managed through junction tables (\texttt{ActorFilm}, \texttt{FilmGenre}, \texttt{FilmStudio}).
+    \item \textbf{Session Management (Scenarios 2a, 4):} Administrators manage the \texttt{Screening} table. The \texttt{hall\_id} and \texttt{start\_time} attributes allow for overlap checks and scheduling.
+    \item \textbf{Staff \& Shifts (Scenarios 3, 3a, 5):} Personnel work hours are tracked in the \texttt{Shift} table. Responsibility for specific screenings is recorded via the \texttt{ShiftScreening} junction table, linking \texttt{Staff} to \texttt{Screening}.
+\end{itemize}
 
 
 % \newpage
