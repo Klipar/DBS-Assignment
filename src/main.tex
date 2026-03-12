@@ -167,80 +167,104 @@ This limitations and rules can be obtained by right connection between tables an
 
 \newpage
 \section{Defining user scenarios}
-\label{sec:proposal}
+\subsection{User scenario 1: Online ticket purchasing}
+\textbf{Description:} The customer searches for a suitable session and pays for a seat in the hall.
 
-We compared a few approaches before settling on the current structure.
-Table~\ref{tab:comparison} summarizes our options.
+\noindent\textbf{Actor:} Customer
 
-% -- Tables -------------------------------------------------------------------
-% Use \begin{table}[H] to place the table exactly here.
-% Label it with \label{} and reference it with Table~\ref{}.
+\noindent\textbf{Used entites:} \texttt{Film, Screening, Hall, Sale}
 
-\begin{table}[H]
-    \centering
-    \caption{Comparison of template approaches}
-    \label{tab:comparison}
-    \begin{tabular}{l c c c}
-        \toprule
-        \textbf{Approach}  & \textbf{Easy to edit} & \textbf{Bilingual} & \textbf{Compiles anywhere} \\
-        \midrule
-        Word document       & yes                   & manual             & n/a  \\
-        Markdown + Pandoc   & yes                   & no                 & maybe \\
-        \LaTeX{} template   & yes                   & yes                & yes  \\
-        \bottomrule
-    \end{tabular}
-\end{table}
+\noindent\textbf{Action flow:}
+\begin{itemize}
+    \item The customer searches for a movie by title, genre, or studio.
+    \item The system displays a list of available screenings.
+    \item The customer selects a screening and a specific available seat.
+    \item The system checks the film's age rating and seat availability.
+    \item After payment, the system registers the ticket and reduces the number of available seats for that screening.
+\end{itemize}
 
-We chose \LaTeX{} because it handles structured documents, citations,
-and cross-references well --- things that matter when writing technical
-reports\footnote{It also looks way better than a Word document. But we are
-biased.}. Unrelated: the wood frog can survive being frozen solid for months ---
-its heart stops, it stops breathing, and in spring it just thaws and hops away.
-We found this less stressful than debugging \LaTeX{} table alignment.
+\includegraphics[width=1\textwidth]{../assets/CASE1.pdf}
 
+\subsection{User scenario 2: Searching for information about films}
+\textbf{Description:} The customer views detailed information about movies before making a purchasing decision.
 
-The template lives in a simple directory structure with localization files
-separated from the main document. Switching language requires changing one
-line:
+\noindent\textbf{Actor:} Customer
 
-% -- Code listings ------------------------------------------------------------
-% Use lstlisting for short code snippets.
+\noindent\textbf{Used entites:} \texttt{Film, Actor, Genre, Studio, FilmGenre, FilmStudio, ActorFilm}
 
-\begin{lstlisting}[language=TeX, caption={Switching language in the preamble}]
-% English
-\input{lang/en}
+\noindent\textbf{Action flow:}
+\begin{itemize}
+    \item The client uses filters to search (actors, genres, studios). 
+    \item The system extracts data from the ``Films`` entity. 
+    \item The system returns screenings for that film.
+    \item The client views the film's duration, cast list, and description.
+\end{itemize}
 
-% Slovak
-\input{lang/sk}
-\end{lstlisting}
+\includegraphics[width=1\textwidth]{../assets/CASE2.pdf}
 
-For SQL or other languages, change the \texttt{language} parameter:
+\subsection{User scenario 3: Personal schedule overview}
+\textbf{Description:} The employee checks his working hours and upcoming shifts.
 
-\begin{lstlisting}[language=SQL, caption={Example SQL query}]
-SELECT s.name, COUNT(*) AS submission_count
-FROM students s
-JOIN submissions sub ON s.id = sub.student_id
-GROUP BY s.name
-ORDER BY submission_count DESC;
-\end{lstlisting}
+\noindent\textbf{Actor:} Worker
 
-% -- Inline code --------------------------------------------------------------
-% Use \texttt{} for inline code: \texttt{SELECT * FROM ...}
+\noindent\textbf{Used entites:} \texttt{Staff, Shift, ShiftScreening, Screening}
 
-References to tables, figures, and sections are automatic. For example,
-this is Section~\ref{sec:implementation}, the comparison is in
-Table~\ref{tab:comparison}, and the faculty logo is shown in
-Figure~\ref{fig:logo} in Attachment~\ref{sec:attachment-a1}.
-If you add or reorder content, the numbers update on the next build.
+\noindent\textbf{Action flow:}
+\begin{itemize}
+    \item The employee logs into the system. 
+    \item The system displays the shifts assigned to him.
+    \item The employee can view the schedule of sessions for which he is responsible.
+\end{itemize}
 
-% -- Citations ----------------------------------------------------------------
-% Add entries to references.bib, then cite them with \cite{key}.
-% The bibliography at the end is generated automatically.
+\includegraphics[width=1\textwidth]{../assets/CASE3.pdf}
 
-The database fundamentals referenced throughout the course are covered
-in \cite{elmasri2016}. For PostgreSQL-specific syntax, see
-\cite{postgresql-docs}.
+\subsection{User scenario 4: Session schedule planning}
+\textbf{Description:} The administrator creates a screening schedule in different cinema halls.
 
+\noindent\textbf{Actor:} Admin
+
+\noindent\textbf{Used entites:} \texttt{Film, Screening, Hall}
+
+\noindent\textbf{Action flow:}
+\begin{itemize}
+    \item The administrator selects a film and assigns a screening time and a hall. 
+    \item The system automatically checks the business rule: only one film can be shown in a single hall at a time.
+    \item The system creates a new screening record, available for ticket purchase.
+\end{itemize}
+
+\includegraphics[width=1\textwidth]{../assets/CASE4.pdf}
+
+\subsection{User scenario 5: Shift management}
+\textbf{Description:} The administrator assigns personnel to specific time slots.
+
+\noindent\textbf{Actor:} Admin
+
+\noindent\textbf{Used entites:} \texttt{Staff, Shift, ShiftScreening, Screening}
+
+\noindent\textbf{Action flow:}
+\begin{itemize}
+    \item The administrator selects an employee from the staff list. 
+    \item Sets the start/end date and time of the shift. 
+    \item TThe system saves the data for subsequent payroll calculations (salary).
+\end{itemize}
+
+\includegraphics[width=1\textwidth]{../assets/CASE5.pdf}
+
+\subsection{User scenario 6: Adding new content}
+\textbf{Description:} The administrator fills the database with new movies.
+
+\noindent\textbf{Actor:} Admin
+
+\noindent\textbf{Used entites:} \texttt{Film, Actor, Genre, Studio, FilmGenre, FilmStudio, ActorFilm}
+
+\noindent\textbf{Action flow:}
+\begin{itemize}
+    \item The administrator enters information about the new film: title, studio, actors, duration, and genres. 
+    \item The system checks the required fields for accuracy.
+    \item The new film becomes available for scheduling screenings.
+\end{itemize}
+
+\includegraphics[width=1\textwidth]{../assets/CASE6.pdf}
 
 \newpage
 % \section{Conclusion }
@@ -507,8 +531,8 @@ The proposed relational model fully supports the required system functionality:
 
 \begin{itemize}
     \item \textbf{Purchasing \& Information (Scenarios 1, 2, 6):} Handled by \texttt{Film}, \texttt{Screening}, and \texttt{Sale} tables. Metadata (actors, genres, studios) is managed through junction tables (\texttt{ActorFilm}, \texttt{FilmGenre}, \texttt{FilmStudio}).
-    \item \textbf{Session Management (Scenarios 2a, 4):} Administrators manage the \texttt{Screening} table. The \texttt{hall\_id} and \texttt{start\_time} attributes allow for overlap checks and scheduling.
-    \item \textbf{Staff \& Shifts (Scenarios 3, 3a, 5):} Personnel work hours are tracked in the \texttt{Shift} table. Responsibility for specific screenings is recorded via the \texttt{ShiftScreening} junction table, linking \texttt{Staff} to \texttt{Screening}.
+    \item \textbf{Session Management (Scenarios 4):} Administrators manage the \texttt{Screening} table. The \texttt{hall\_id} and \texttt{start\_time} attributes allow for overlap checks and scheduling.
+    \item \textbf{Staff \& Shifts (Scenarios 3, 5):} Personnel work hours are tracked in the \texttt{Shift} table. Responsibility for specific screenings is recorded via the \texttt{ShiftScreening} junction table, linking \texttt{Staff} to \texttt{Screening}.
 \end{itemize}
 
 

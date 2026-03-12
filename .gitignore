@@ -13,6 +13,8 @@
 
 # Output
 *.pdf
+!assets/*.pdf
+!assets/**/*.pdf
 
 # macOS
 .DS_Store
