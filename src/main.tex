@@ -91,78 +91,68 @@
 \section{Specification}
 \label{sec:analysis}
 
-
 \subsection{Problem and solution}
-System designed for managing cinema, and its inner process. System mast care about:
+
+The system is designed for managing a cinema and its internal processes. The system must support the following functions:
 
 \begin{itemize}
-    \item Adding a new films, and information about it (actor, genre, studio, length\ldots).
-    \item Store schedule for film screening (hals where they are shown, people who shown they).
-    \item Store information about count of tickets sold and left for screening.
-    \item Allow search film by name, genres, actors and studios.
-    \item Store information about shifts and they schedule.
-    \item Store information about employee and they shifts.
-    \item Allow shifts scheduling.
-    \item Allow baying tickets and for screening.
+    \item Adding new films and storing information about them (actors, genre, studio, duration\ldots).
+    \item Storing the schedule for film screenings (halls where they are shown and employees responsible for them).
+    \item Storing information about the number of tickets sold and the number of tickets remaining for each screening.
+    \item Allowing users to search for films by name, genre, actors, and studio.
+    \item Storing information about employee shifts and their schedules.
+    \item Storing information about employees and their shifts.
+    \item Allowing shift scheduling.
+    \item Allowing the purchase of tickets for screenings.
 \end{itemize}
 
-This system would allow online ticket ordering, schedule screening and shifts. It for useful for customers and employee simultaneously.
+This system allows online ticket ordering and scheduling of screenings and shifts. It is useful for both customers and employees.
 
 \subsection{Actors}
-System must be able to treat severals roles:
+
+The system must support several roles:
 
 \begin{itemize}
-    \item Customer — can search for films by name, genre, actors, length and studio. After search it can purchase ticket on comfortable for him screening.
-Has access to ticket purchasing and searching for films.
-    \item Worker — can see his schedule and track his work time. Has access to films and schedule of other workers in read only mode.
-    \item Admin — can schedule shifts for workers and add new films. Has access to all system, and can edit it.
+    \item Customer - can search for films by name, genre, actors, duration, and studio. After the search, the customer can purchase a ticket for a convenient screening. The customer has access to ticket purchasing and film searching functions.
+
+    \item Worker - can view their schedule and track their working hours. The worker has read-only access to film information and the schedules of other workers.
+
+    \item Admin - can schedule shifts for workers and add new films. The admin has full access to the system and can modify its data.
 \end{itemize}
 
 \subsection{Entities}
-For function system must contain key elements:
+
+For the system to function properly, it must contain the following key entities:
+
 \begin{itemize}
-    \item Films - we must store films, it is central element of our system.
-    \item Screening - we should be able to plane screenings.
-    \item Halls - we should avoid collisions in schedule when several screening was planed on the same time in same hall. Also we should be able to track hall capacity and avoid overflow.
-    \item Tickets - we should be able to let peoples possibility to by specific sit and track capacity.
-    \item Staff - we should be able to store data about workers.
-    \item Shifts - we need to be aware about shifts of workers to calculate they celery and track who wos responsible for each screening.
+    \item Films - the system must store information about films, which represent the central element of the system.
+
+    \item Screenings - the system must support planning and managing film screenings.
+
+    \item Halls - the system must prevent scheduling conflicts when multiple screenings are planned at the same time in the same hall. It must also track hall capacity and prevent exceeding it.
+
+    \item Tickets - the system must allow customers to purchase specific seats and track hall capacity.
+
+    \item Staff - the system must store information about employees.
+
+    \item Shifts - the system must track employee shifts in order to calculate salaries and determine who was responsible for each screening.
 \end{itemize}
 
 \subsection{Business rules}
-According to proper work of system it should be able to follow several rules:
+
+For the proper functioning of the system, several rules must be enforced:
 
 \begin{itemize}
-    \item Ticket can not be sold if screening according to hall is full.
-    \item Ticker can not be sold if age of customer is proper for film.
-    \item Every film must have studios, actors, name, duration and genres.
-    \item In single moment of time in one hall only one film can be shown.
+    \item A ticket cannot be sold if the screening is already full according to the hall capacity.
+
+    \item A ticket cannot be sold if the customer does not meet the age requirement for the film.
+
+    \item Every film must have a name, duration, studio, actors, and genres specified.
+
+    \item At any given time, only one film can be shown in a hall.
 \end{itemize}
-This limitations and rules can be obtained by right connection between tables and rights limitations on fields, which would be discussed in following parts.
 
-% The goal of this project was to create a submission template for the DBS
-% course that students can clone and start writing in immediately. The template
-% should be easy to use, support Slovak and English, and not require any prior
-% \LaTeX{} experience\footnote{If this is your first time with \LaTeX{}, the
-% Overleaf guide \cite{overleaf-docs} covers everything you need in about 30 minutes.}.
-
-% The template repository is available at \cite{template-repo}.
-
-
-% \subsection{Requirements}
-
-% We identified the following requirements:
-
-% \begin{itemize}
-%     \item Clean cover page with faculty branding.
-%     \item Bilingual support (SK/EN) via a single toggle.
-%     \item Examples of tables, figures, code, and citations.
-%     \item Minimal package dependencies --- it should compile everywhere.
-% \end{itemize}
-
-% When listing ordered steps, use \texttt{enumerate} instead:
-
-
+These limitations and rules can be implemented through proper relationships between database tables and constraints on fields, which will be discussed in the following sections.
 
 
 \newpage
@@ -194,8 +184,8 @@ This limitations and rules can be obtained by right connection between tables an
 
 \noindent\textbf{Action flow:}
 \begin{itemize}
-    \item The client uses filters to search (actors, genres, studios). 
-    \item The system extracts data from the ``Films`` entity. 
+    \item The client uses filters to search (actors, genres, studios).
+    \item The system extracts data from the ``Films`` entity.
     \item The system returns screenings for that film.
     \item The client views the film's duration, cast list, and description.
 \end{itemize}
@@ -211,7 +201,7 @@ This limitations and rules can be obtained by right connection between tables an
 
 \noindent\textbf{Action flow:}
 \begin{itemize}
-    \item The employee logs into the system. 
+    \item The employee logs into the system.
     \item The system displays the shifts assigned to him.
     \item The employee can view the schedule of sessions for which he is responsible.
 \end{itemize}
@@ -227,7 +217,7 @@ This limitations and rules can be obtained by right connection between tables an
 
 \noindent\textbf{Action flow:}
 \begin{itemize}
-    \item The administrator selects a film and assigns a screening time and a hall. 
+    \item The administrator selects a film and assigns a screening time and a hall.
     \item The system automatically checks the business rule: only one film can be shown in a single hall at a time.
     \item The system creates a new screening record, available for ticket purchase.
 \end{itemize}
@@ -243,8 +233,8 @@ This limitations and rules can be obtained by right connection between tables an
 
 \noindent\textbf{Action flow:}
 \begin{itemize}
-    \item The administrator selects an employee from the staff list. 
-    \item Sets the start/end date and time of the shift. 
+    \item The administrator selects an employee from the staff list.
+    \item Sets the start/end date and time of the shift.
     \item TThe system saves the data for subsequent payroll calculations (salary).
 \end{itemize}
 
@@ -259,7 +249,7 @@ This limitations and rules can be obtained by right connection between tables an
 
 \noindent\textbf{Action flow:}
 \begin{itemize}
-    \item The administrator enters information about the new film: title, studio, actors, duration, and genres. 
+    \item The administrator enters information about the new film: title, studio, actors, duration, and genres.
     \item The system checks the required fields for accuracy.
     \item The new film becomes available for scheduling screenings.
 \end{itemize}
