@@ -143,13 +143,17 @@ For the system to function properly, it must contain the following key entities:
 For the proper functioning of the system, several rules must be enforced:
 
 \begin{itemize}
-    \item A ticket cannot be sold if the screening is already full according to the hall capacity.
+    \item A ticket cannot be sold if the screening is already full according to the hall capacity. \\
+    This can be enforced by verifying that the number of tickets sold for a given screening does not exceed the capacity of the hall where the film is being shown.
 
-    \item A ticket cannot be sold if the customer does not meet the age requirement for the film.
+    \item A ticket cannot be sold if the customer does not meet the age requirement for the film. \\
+    This can be enforced by comparing the film's age rating with the customer's age recorded at the time of purchase.
 
-    \item Every film must have a name, duration, studio, actors, and genres specified.
+    \item Every film must have a name, duration, studio, actors, and genres specified. \\
+    This can be enforced using NOT NULL constraints on the respective columns in the film table.
 
-    \item At any given time, only one film can be shown in a hall.
+    \item At any given time, only one film can be shown in a hall. \\
+    This can be enforced by ensuring that the start time of a new screening does not overlap with the start time plus duration of any existing screening in the same hall, possibly implemented via a UNIQUE constraint or a trigger.
 \end{itemize}
 
 These limitations and rules can be implemented through proper relationships between database tables and constraints on fields, which will be discussed in the following sections.
@@ -257,19 +261,6 @@ These limitations and rules can be implemented through proper relationships betw
 \includegraphics[width=1\textwidth]{../assets/CASE6.pdf}
 
 \newpage
-% \section{Conclusion }
-% \label{sec:challenges}
-
-% The main challenge was keeping the template simple enough that a student
-% seeing \LaTeX{} for the first time would not immediately close the file.
-% We solved this by limiting the preamble to essential packages and
-% putting all examples in one place --- this document.
-
-% We also learned that BibTeX interprets \texttt{@} signs in comments as
-% entry types, which caused confusing errors. Small things like this are
-% easy to fix once you know about them, but hard to debug the first time\footnote{A
-% group of frogs is called an ``army.'' A group of students debugging BibTeX at
-% 2\,AM is called ``Tuesday.''}.
 
 \newpage
 \section{Design of the Relational Model}
