@@ -499,13 +499,67 @@ Studio $\rightarrow$ FilmStudio & 1:N & FK in FilmStudio & Mandatory \\
 \end{table}
 
 \subsection{Integrity Constraints Realization}
-The integrity constraints from Chapter 2 are enforced as follows:
+
+The integrity constraints described in Chapter 2 (Specification) are implemented in the relational model using a combination of structural constraints, domain restrictions, and business logic checks.
+
 \begin{itemize}
-    \item \textbf{Entity Integrity} guaranteed by \texttt{PRIMARY KEY} constraints on all \texttt{id} columns.
-    \item \textbf{Referential Integrity} enforced via \texttt{FOREIGN KEY} constraints. For example, a \texttt{Sale} cannot exist without a valid \texttt{Screening}.
-    \item \textbf{Domain Integrity} ensured by data types (\texttt{DATE}, \texttt{TIMESTAMP}) and \texttt{CHECK} constraints (e.g., verifying that a movie duration is positive).
+
+\item \textbf{Film information completeness}
+
+According to the specification, every film must contain a title, duration, studio, actors, and genres.
+
+This requirement is implemented using:
+\begin{itemize}
+    \item \texttt{NOT NULL} constraints on \texttt{Film.name} and \texttt{Film.duration}.
+    \item A \texttt{CHECK (duration > 0)} constraint to ensure valid film length.
+    \item Junction tables \texttt{ActorFilm}, \texttt{FilmGenre}, and \texttt{FilmStudio} that associate films with actors, genres, and studios.
 \end{itemize}
 
+\item \textbf{Hall capacity limitation}
+
+A ticket cannot be sold if the number of sold tickets exceeds the capacity of the hall where the screening is held.
+
+This rule is implemented by:
+\begin{itemize}
+    \item Storing hall capacity in the \texttt{Hall.capacity} attribute.
+    \item Linking ticket sales to screenings through the \texttt{Sale.screening\_id} foreign key.
+    \item Verifying during ticket insertion that the number of existing sales for a screening does not exceed the capacity of the related hall. This rule can be implemented using an application-level validation.
+\end{itemize}
+
+\item \textbf{Age restriction for films}
+
+A ticket cannot be sold if the customer's age does not satisfy the age rating of the film.
+
+This rule is enforced by:
+\begin{itemize}
+    \item Storing the film rating in the \texttt{Film.age\_group} attribute.
+    \item Recording the customer's age in \texttt{Sale.customer\_age}.
+    \item Comparing these values during ticket purchase using an application-level validation.
+\end{itemize}
+
+\item \textbf{Non-overlapping screenings in the same hall}
+
+At any given time only one screening can take place in a hall.
+
+This constraint is implemented by:
+\begin{itemize}
+    \item Storing the start time of each screening in \texttt{Screening.start\_time}.
+    \item Linking screenings to halls using the \texttt{hall\_id} foreign key.
+    \item Checking that the time interval of a new screening does not overlap with existing screenings in the same hall.
+\end{itemize}
+
+\item \textbf{General relational integrity}
+
+Basic database integrity is ensured through:
+\begin{itemize}
+    \item \textbf{Entity integrity}: every table has a \texttt{PRIMARY KEY} (\texttt{id}).
+    \item \textbf{Referential integrity}: relationships between entities are enforced using \texttt{FOREIGN KEY} constraints.
+    \item \textbf{Domain integrity}: implemented using appropriate data types and \texttt{CHECK} constraints (for example age limits, positive durations, and valid shift times).
+\end{itemize}
+
+\end{itemize}
+
+These mechanisms ensure that the database structure enforces the main business rules defined in the system specification.
 \subsection{User Scenario Verification}
 
 The proposed relational model fully supports the required system functionality:
@@ -526,46 +580,6 @@ It compiles with a standard \LaTeX{} distribution, supports two
 languages, and provides working examples of every feature students
 are likely to need.
 
-For anything not covered here, the Overleaf documentation
-\cite{overleaf-docs} is an excellent reference.
-
-% --- Bibliography ------------------------------------------------------------
-\printbibliography
-
-% --- Attachments -------------------------------------------------------------
-\newpage
-\appendix
-
-% \section{Sample figures}
-% \label{sec:attachment-a1}
-
-% % -- Figures ------------------------------------------------------------------
-% % Use \begin{figure}[H] to place the figure exactly here.
-% % Label it with \label{} and reference it with Figure~\ref{}.
-% % Keep images in the assets/ directory.
-
-% \begin{figure}[H]
-%     \centering
-%     \includegraphics[width=0.25\textwidth]{../assets/logo}
-%     \caption{Faculty logo used on the cover page}
-%     \label{fig:logo}
-% \end{figure}
-
-% Place your diagrams, screenshots, and other supporting images in this
-% section. Reference them from the main text using
-% \texttt{Figure\~{}\textbackslash ref\{fig:logo\}}.
-
-% Some frogs can absorb water through a patch of skin on their belly called a
-% ``drinking patch'' --- they literally sit in puddles to hydrate. This has
-% nothing to do with databases but is objectively more interesting than
-% anything on this page.
-
-% You can control the image size with the width parameter:
-%   width=0.5\textwidth   ... half the page width
-%   width=5cm             ... exact size
-%   scale=0.8             ... 80% of original
-
-% To add more figures, copy the block above and change the file path,
-% caption, and label.
+For anything not covered here, the Overleaf documentation is an excellent reference.
 
 \end{document}
