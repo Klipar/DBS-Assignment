@@ -572,14 +572,25 @@ The proposed relational model fully supports the required system functionality:
 
 
 % \newpage
-\section{Conclusion}
-\label{sec:conclusion}
+\section{Evaluation and Conclusion}
+\label{sec:evaluation}
 
-The template meets the requirements from Section~\ref{sec:analysis}.
-It compiles with a standard \LaTeX{} distribution, supports two
-languages, and provides working examples of every feature students
-are likely to need.
 
-For anything not covered here, the Overleaf documentation is an excellent reference.
+The proposed solution implements the basic logic of a potential cinema.
+The scheme does not implement budget calculation and salary payment, specific events within the cinema, does not allow creating accounts on the platform, etc.
+
+Creating the logic model and tables took the most time because it required the most planning and thinking through all possible further requirements and problems from use.
+
+The problems included having difficulties with understanding what logic to implement with \textbf{ON DELETE} actions,
+we learned that in practice most tables use \texttt{RESTRICT}, therefore it was implemented as such.
+
+Some of us have never worked with databases before, therefore this whole experience was quite new and learning-intensive.
+
+The development process was built around requirements generation and adapting the database schema to meet these requirements.
+That said, it was a very iterative process, and we had to go back and forth between the specification and the implementation several times to ensure that all requirements were properly addressed in the database design.
+
+AI was used to assist with formatting the text style since \LaTeX\ is not used much by us.
+
+This topic was chosen because of its versatility to form a fairly simple data scheme with a few tables and also deepen it by adding more details and complex dependencies.
 
 \end{document}
