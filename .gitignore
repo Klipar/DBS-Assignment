@@ -19,6 +19,9 @@
 # Output from seed.py
 seed.sql
 
+# Environment file
+.env
+
 # macOS
 .DS_Store
 
