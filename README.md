@@ -1,35 +1,32 @@
-# Cinema System — Seeding & Reproducibility
+# Cinema Database
 
-This project implements the physical database model for a cinema management system with a fully reproducible data seeding process.
+Implementation of a cinema management system with automated data initialization.
 
-## Project Structure
-* `schema.sql` — Database structure (DDL).
-* `seed.py` — Data generator script (Python).
-* `seed.sql` — Generated dataset (14,000+ records).
-* `docker-compose.yml` — PostgreSQL environment configuration.
+## Structure
+* `schema.sql` – DDL (Tables and constraints).
+* `seed.sql` – 14,000+ records (Fixed seed).
+* `seed.py` – Python script for data generation.
+* `docker-compose.yml` – Database environment.
 
-## Setup Instructions
+## Usage
 
-1. **Start the Database:**
+1. **Start:**
    ```bash
    docker compose up -d
    ```
+   On first start, PostgreSQL automatically executes files from `./docker-entrypoint-initdb.d/` in alphabetical order (`schema.sql` first, then `seed.sql`).
 
-2. **Initialize the Schema:**
+2. **Reset:**
+   To re-initialize the database from scratch:
    ```bash
-   docker exec -i cinema_db psql -U postgres -d cinema_db < schema.sql
-   ```
-
-3. **Populate Data:**
-   ```bash
-   docker exec -i cinema_db psql -U postgres -d cinema_db < seed.sql
+   docker compose down -v
+   docker compose up -d
    ```
 
 ## Reproducibility
-The `seed.sql` file is generated via `seed.py`. To ensure the dataset remains identical across all environments, a fixed seed is used:
-```python
-Faker.seed(67)
+The `seed.sql` file is deterministic (uses `Faker.seed(67)`).
+To regenerate:
+```bash
+pip install Faker
+python seed.py
 ```
-To re-generate the file:
-1. Install dependency: `pip install Faker`.
-2. Run: `python seed.py`.
