@@ -16,6 +16,9 @@
 !assets/*.pdf
 !assets/**/*.pdf
 
+# Output from seed.py
+seed.sql
+
 # macOS
 .DS_Store
 
