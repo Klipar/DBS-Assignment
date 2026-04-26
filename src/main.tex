@@ -1,6 +1,3 @@
-%! Author = jdubec
-%! Date = 16/02/2026
-
 \documentclass[11pt, a4paper]{article}
 
 % --- Packages ----------------------------------------------------------------
@@ -37,7 +34,7 @@
 % --- Student details ---------------------------------------------------------
 \newcommand{\StudentName}{Bohdan Karpenko, Arseniy Malyuk, Oleksii Khmelevskyi}
 \newcommand{\StudyGroup}{Wednesday 14:00}
-\newcommand{\AssignmentNumber}{1}
+\newcommand{\AssignmentNumber}{3}
 \newcommand{\AssignmentTitle}{Cinema}
 \newcommand{\AcademicYear}{2025/2026}
 
@@ -80,189 +77,104 @@
 \tableofcontents
 \newpage
 
-% =============================================================================
-% This document serves as both the assignment template and a quick guide
-% to the LaTeX features you will need. Replace the content, keep the structure.
-%
-% Template source: https://github.com/FIIT-Databases/assignment-template
-% =============================================================================
 
+\section{Physical Model – Implementation}
 
-\section{Specification}
-\label{sec:analysis}
-
-\subsection{Problem and solution}
-
-The system is designed for managing a cinema and its internal processes. The system must support the following functions:
+\subsection{List of Tables}
+The following tables have been implemented to represent the cinema management system:
 
 \begin{itemize}
-    \item Adding new films and storing information about them (actors, genre, studio, duration\ldots).
-    \item Storing the schedule for film screenings (halls where they are shown and employees responsible for them).
-    \item Storing information about the number of tickets sold and the number of tickets remaining for each screening.
-    \item Allowing users to search for films by name, genre, actors, and studio.
-    \item Storing information about employee shifts and their schedules.
-    \item Storing information about employees and their shifts.
-    \item Allowing shift scheduling.
-    \item Allowing the purchase of tickets for screenings.
+    \item \textbf{staffs}: Stores employee information, including names, age, and professional positions.
+    \item \textbf{halls}: Contains data regarding cinema auditoriums, their names, and seating capacities.
+    \item \textbf{films}: A catalog of movies featuring titles, durations, and age ratings.
+    \item \textbf{actors}: A registry of actors (first and last names) performing in the films.
+    \item \textbf{genres}: A lookup table for various movie genres available in the system.
+    \item \textbf{studios}: A registry of production studios responsible for the films.
+    \item \textbf{screenings}: Scheduled movie showtimes, linking films to specific halls and times.
+    \item \textbf{shifts}: Employee work schedules, including descriptions and time intervals.
+    \item \textbf{sales}: Records of ticket transactions, linking customers to specific screenings.
+    \item \textbf{actors\_films}: Junction table managing the M:N relationship between actors and films.
+    \item \textbf{films\_genres}: Junction table for assigning multiple genres to films (M:N).
+    \item \textbf{films\_studios}: Junction table linking films to their respective production studios.
+    \item \textbf{shifts\_screenings}: Junction table assigning staff shifts to the screenings they service.
 \end{itemize}
 
-This system allows online ticket ordering and scheduling of screenings and shifts. It is useful for both customers and employees.
-
-\subsection{Actors}
-
-The system must support several roles:
+\subsection{Notable Integrity Constraints}
+The following constraints were implemented to enforce specific business rules and ensure data validity:
 
 \begin{itemize}
-    \item Customer - can search for films by name, genre, actors, duration, and studio. After the search, the customer can purchase a ticket for a convenient screening. The customer has access to ticket purchasing and film searching functions.
-
-    \item Worker - can view their schedule and track their working hours. The worker has read-only access to film information and the schedules of other workers.
-
-    \item Admin - can schedule shifts for workers and add new films. The admin has full access to the system and can modify its data.
+    \item \textbf{Employee Age (CHECK)}: The constraint \texttt{age >= 15} in the \texttt{staffs} table ensures that the cinema complies with labor regulations allowing the employment of teenagers from the age of 15.
+    \item \textbf{Auditorium Capacity (CHECK)}: The \texttt{capacity > 0} condition in the \texttt{halls} table prevents the creation of invalid rooms with no seating.
+    \item \textbf{Film Duration (CHECK)}: The \texttt{duration} field must be a positive integer, eliminating data entry errors for movie lengths.
+    \item \textbf{Genre Uniqueness (UNIQUE)}: Ensures that genre names are not duplicated, maintaining a clean and consistent categorization system.
+    \item \textbf{Referential Integrity}: All foreign keys ensure that child records (e.g., sales, screenings) always point to existing parent records, preventing orphaned data.
 \end{itemize}
 
-\subsection{Entities}
-
-For the system to function properly, it must contain the following key entities:
+\subsection{Selected Referential Actions}
+To maintain database consistency and prevent accidental data loss, the following strategies were applied to all foreign key relationships:
 
 \begin{itemize}
-    \item Films - the system must store information about films, which represent the central element of the system.
-
-    \item Screenings - the system must support planning and managing film screenings.
-
-    \item Halls - the system must prevent scheduling conflicts when multiple screenings are planned at the same time in the same hall. It must also track hall capacity and prevent exceeding it.
-
-    \item Tickets - the system must allow customers to purchase specific seats and track hall capacity.
-
-    \item Staff - the system must store information about employees.
-
-    \item Shifts - the system must track employee shifts in order to calculate salaries and determine who was responsible for each screening.
+    \item \textbf{ON DELETE RESTRICT}: This strategy is used across all tables to prevent the deletion of a parent record if any referenced child records exist. For example, a film cannot be deleted if there are existing screenings or sales associated with it. This ensures the preservation of historical data and prevents "orphaned" records that would break the system's logic.
+    \item \textbf{ON UPDATE CASCADE}: This strategy ensures that any changes to primary keys (e.g., updating a unique identifier) are automatically propagated to all related foreign keys in child tables. This maintains seamless connectivity between entities without manual intervention after an update.
 \end{itemize}
-
-\subsection{Business rules}
-
-For the proper functioning of the system, several rules must be enforced:
-
-\begin{itemize}
-    \item A ticket cannot be sold if the screening is already full according to the hall capacity. \\
-    This can be enforced by verifying that the number of tickets sold for a given screening does not exceed the capacity of the hall where the film is being shown.
-
-    \item A ticket cannot be sold if the customer does not meet the age requirement for the film. \\
-    This can be enforced by comparing the film's age rating with the customer's age recorded at the time of purchase.
-
-    \item Every film must have a name, duration, studio, actors, and genres specified. \\
-    This can be enforced using NOT NULL constraints on the respective columns in the film table.
-
-    \item At any given time, only one film can be shown in a hall. \\
-    This can be enforced by ensuring that the start time of a new screening does not overlap with the start time plus duration of any existing screening in the same hall, possibly implemented via a UNIQUE constraint or a trigger.
-\end{itemize}
-
-These limitations and rules can be implemented through proper relationships between database tables and constraints on fields, which will be discussed in the following sections.
-
-
-\newpage
-\section{Defining user scenarios}
-\subsection{User scenario 1: Online ticket purchasing}
-\textbf{Description:} The customer searches for a suitable session and pays for a seat in the hall.
-
-\noindent\textbf{Actor:} Customer
-
-\noindent\textbf{Used entites:} \texttt{Film, Screening, Hall, Sale}
-
-\noindent\textbf{Action flow:}
-\begin{itemize}
-    \item The customer searches for a movie by title, genre, or studio.
-    \item The system displays a list of available screenings.
-    \item The customer selects a screening and a specific available seat.
-    \item The system checks the film's age rating and seat availability.
-    \item After payment, the system registers the ticket and reduces the number of available seats for that screening.
-\end{itemize}
-
-\includegraphics[width=1\textwidth]{../assets/CASE1.pdf}
-
-\subsection{User scenario 2: Searching for information about films}
-\textbf{Description:} The customer views detailed information about movies before making a purchasing decision.
-
-\noindent\textbf{Actor:} Customer
-
-\noindent\textbf{Used entites:} \texttt{Film, Actor, Genre, Studio, FilmGenre, FilmStudio, ActorFilm}
-
-\noindent\textbf{Action flow:}
-\begin{itemize}
-    \item The client uses filters to search (actors, genres, studios).
-    \item The system extracts data from the ``Films`` entity.
-    \item The system returns screenings for that film.
-    \item The client views the film's duration, cast list, and description.
-\end{itemize}
-
-\includegraphics[width=1\textwidth]{../assets/CASE2.pdf}
-
-\subsection{User scenario 3: Personal schedule overview}
-\textbf{Description:} The employee checks his working hours and upcoming shifts.
-
-\noindent\textbf{Actor:} Worker
-
-\noindent\textbf{Used entites:} \texttt{Staff, Shift, ShiftScreening, Screening}
-
-\noindent\textbf{Action flow:}
-\begin{itemize}
-    \item The employee logs into the system.
-    \item The system displays the shifts assigned to him.
-    \item The employee can view the schedule of sessions for which he is responsible.
-\end{itemize}
-
-\includegraphics[width=1\textwidth]{../assets/CASE3.pdf}
-
-\subsection{User scenario 4: Session schedule planning}
-\textbf{Description:} The administrator creates a screening schedule in different cinema halls.
-
-\noindent\textbf{Actor:} Admin
-
-\noindent\textbf{Used entites:} \texttt{Film, Screening, Hall}
-
-\noindent\textbf{Action flow:}
-\begin{itemize}
-    \item The administrator selects a film and assigns a screening time and a hall.
-    \item The system automatically checks the business rule: only one film can be shown in a single hall at a time.
-    \item The system creates a new screening record, available for ticket purchase.
-\end{itemize}
-
-\includegraphics[width=1\textwidth]{../assets/CASE4.pdf}
-
-\subsection{User scenario 5: Shift management}
-\textbf{Description:} The administrator assigns personnel to specific time slots.
-
-\noindent\textbf{Actor:} Admin
-
-\noindent\textbf{Used entites:} \texttt{Staff, Shift, ShiftScreening, Screening}
-
-\noindent\textbf{Action flow:}
-\begin{itemize}
-    \item The administrator selects an employee from the staff list.
-    \item Sets the start/end date and time of the shift.
-    \item TThe system saves the data for subsequent payroll calculations (salary).
-\end{itemize}
-
-\includegraphics[width=1\textwidth]{../assets/CASE5.pdf}
-
-\subsection{User scenario 6: Adding new content}
-\textbf{Description:} The administrator fills the database with new movies.
-
-\noindent\textbf{Actor:} Admin
-
-\noindent\textbf{Used entites:} \texttt{Film, Actor, Genre, Studio, FilmGenre, FilmStudio, ActorFilm}
-
-\noindent\textbf{Action flow:}
-\begin{itemize}
-    \item The administrator enters information about the new film: title, studio, actors, duration, and genres.
-    \item The system checks the required fields for accuracy.
-    \item The new film becomes available for scheduling screenings.
-\end{itemize}
-
-\includegraphics[width=1\textwidth]{../assets/CASE6.pdf}
-
 \newpage
 
+
+\section{Seed Data}
+
+\subsection{Data Generation Process}
+The dataset was programmatically generated using a custom \textbf{Python} script and the \textbf{Faker} library. A fixed seed (\texttt{Faker.seed(67)}) was used to ensure reproducibility. The script handles complex logic such as:
+\begin{itemize}
+    \item String truncation to fit \texttt{VARCHAR(32)} constraints.
+    \item Ensuring uniqueness for studio and genre names.
+    \item Maintaining referential integrity by generating data in a specific hierarchical order.
+\end{itemize}
+
+\subsection{Record Counts}
+After executing the \texttt{seed.sql} script, the database contains over 14,000 records. The precise distribution is summarized in the table below:
+
+\begin{table}[h!]
+\centering
+\begin{tabular}{lr}
+\toprule
+\textbf{Table Name} & \textbf{Record Count} \\
+\midrule
+staffs & 30 \\
+halls & 8 \\
+films & 200 \\
+actors & 200 \\
+genres & 15 \\
+studios & 20 \\
+screenings & 1,000 \\
+sales & 10,000 \\
+shifts & 300 \\
+\midrule
+\textit{Junction Tables:} & \\
+actors\_films & 596 \\
+films\_genres & 318 \\
+films\_studios & 311 \\
+shifts\_screenings & 1,365 \\
+\midrule
+\textbf{Total Records} & \textbf{14,363} \\
+\bottomrule
+\end{tabular}
+\caption{Final record counts after database seeding.}
+\end{table}
+
+\subsection{Data Distribution and Consistency}
+The distribution of data reflects a realistic cinema operations model:
+\begin{itemize}
+    \item \textbf{High-Volume Sales}: 10,000 sales across 1,000 screenings simulate a realistic average of 10 tickets sold per screening.
+    \item \textbf{Junction Table Logic}: 
+    \begin{itemize}
+        \item \textbf{Actors/Films}: On average, 3 actors are assigned per film (596 records for 200 films).
+        \item \textbf{Shifts/Screenings}: Each staff shift (300 total) covers approximately 4.5 screenings, representing a standard 8-hour workday.
+    \end{itemize}
+    \item \textbf{Temporal Integrity}: All screenings and shifts are generated within a one-year window, ensuring that the scheduling system remains logically consistent for analytical queries.
+\end{itemize}
 \newpage
+
+
 \section{Design of the Relational Model}
 \label{sec:implementation}
 
@@ -448,8 +360,9 @@ All primary keys are surrogate keys of type \texttt{SMALLSERIAL}. This approach 
     \end{itemize}
     \item \textbf{PK Choice:} Artificial (\texttt{id}).
 \end{itemize}
-
 \newpage
+
+
 \subsection{Description of Relationships}
 
 \begin{table}[h]
@@ -569,12 +482,11 @@ The proposed relational model fully supports the required system functionality:
     \item \textbf{Session Management (Scenarios 4):} Administrators manage the \texttt{Screening} table. The \texttt{hall\_id} and \texttt{start\_time} attributes allow for overlap checks and scheduling.
     \item \textbf{Staff \& Shifts (Scenarios 3, 5):} Personnel work hours are tracked in the \texttt{Shift} table. Responsibility for specific screenings is recorded via the \texttt{ShiftScreening} junction table, linking \texttt{Staff} to \texttt{Screening}.
 \end{itemize}
-
-
 % \newpage
+
+
 \section{Evaluation and Conclusion}
 \label{sec:evaluation}
-
 
 The proposed solution implements the basic logic of a potential cinema.
 The scheme does not implement budget calculation and salary payment, specific events within the cinema, does not allow creating accounts on the platform, etc.
