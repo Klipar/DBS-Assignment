@@ -1,7 +1,7 @@
 name: cinema
 
 services:
-  db:
+  DBS_3Task_db:
     image: postgres:15-alpine
     container_name: cinema_db
     restart: always
