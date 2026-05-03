@@ -1,6 +1,6 @@
 import random
 from faker import Faker
-from datetime import datetime, timedelta
+from datetime import timedelta
 
 fake = Faker()
 Faker.seed(67)
