@@ -132,3 +132,29 @@ CREATE TABLE films_studios (
                                    ON DELETE RESTRICT
                                    ON UPDATE CASCADE
 );
+
+
+-- 3. INDEXES
+
+DROP INDEX IF EXISTS idx_actors_name;
+DROP INDEX IF EXISTS idx_actors_surname;
+DROP INDEX IF EXISTS idx_actors_films_composite;
+DROP INDEX IF EXISTS idx_films_genres_composite;
+DROP INDEX IF EXISTS idx_films_studios_composite;
+
+DROP INDEX IF EXISTS idx_screenings_film_start;
+DROP INDEX IF EXISTS idx_sales_screening_id;
+
+DROP INDEX IF EXISTS idx_screenings_hall_start_film;
+
+
+CREATE INDEX idx_actors_name ON actors(name);
+CREATE INDEX idx_actors_surname ON actors(surname);
+CREATE INDEX idx_actors_films_composite ON actors_films(actor_id, film_id);
+CREATE INDEX idx_films_genres_composite ON films_genres(genre_id, film_id);
+CREATE INDEX idx_films_studios_composite ON films_studios(studio_id, film_id);
+
+CREATE INDEX idx_screenings_film_start ON screenings(film_id, start_time);
+CREATE INDEX idx_sales_screening_id ON sales(screening_id);
+
+CREATE INDEX idx_screenings_hall_start_film ON screenings (hall_id, start_time, film_id);
