@@ -202,6 +202,11 @@ The implementation consists of two main queries: one for finding the film and an
 
 \subsubsection{Query 1: Search by Filters (Actors, Genres, Studios)}
 \begin{lstlisting}
+-- Parameters:
+--   $1 = actor name
+--   $2 = actor surname
+--   $3 = actor genre
+--   $4 = film studio
 SELECT DISTINCT
   f.id,
   f.name,
@@ -223,6 +228,8 @@ JOIN studios AS s ON s.id = fs.studio_id AND s.name = '{{studio}}';
 
 \subsubsection{Query 1: Search by Filters (Actors, Genres, Studios)}
 \begin{lstlisting}
+-- Parameters:
+--   $1 = film id
 SELECT
   s.id,
   s.start_time,
@@ -235,7 +242,7 @@ FROM
 
 JOIN halls AS h on h.id = s.hall_id
 LEFT JOIN sales AS sl ON sl.screening_id = s.id
-WHERE s.film_id = {{film_id}}
+WHERE s.film_id = $1
 GROUP BY s.id, h.name, s.start_time, s.language, h.capacity
 HAVING h.capacity > COUNT(sl.id)
 ORDER BY start_time ASC
@@ -245,8 +252,8 @@ ORDER BY start_time ASC
 \subsubsection{First request}
 Input parameters:
 \begin{itemize}
-    \item name: Johnny Brown
-    \item surname: Johnny Brown
+    \item name: Johnny
+    \item surname: Brown
     \item genre: Sci-Fi
     \item studio: Blackwell, Burke and Mal Studio
 \end{itemize}
