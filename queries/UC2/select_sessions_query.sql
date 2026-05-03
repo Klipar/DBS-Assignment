@@ -10,7 +10,7 @@ FROM
 
 JOIN halls AS h on h.id = s.hall_id
 LEFT JOIN sales AS sl ON sl.screening_id = s.id
-WHERE s.film_id = 76
+WHERE s.film_id = {{film_id}}
 GROUP BY s.id, h.name, s.start_time, s.language, h.capacity
 HAVING h.capacity > COUNT(sl.id)
 ORDER BY start_time ASC
