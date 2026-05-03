@@ -1,26 +1,37 @@
 \documentclass[11pt, a4paper]{article}
 
-% --- Packages ----------------------------------------------------------------
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
 \usepackage[margin=2.5cm]{geometry}
 \usepackage{graphicx}
 \usepackage{hyperref}
-\usepackage{booktabs}       % nicer tables (\toprule, \midrule, \bottomrule)
-\usepackage{float}          % [H] placement for figures and tables
-\usepackage{xcolor}         % colors (used by listings)
-\usepackage{listings}       % code listings
+\usepackage{booktabs}
+\usepackage{float}
+\usepackage{xcolor}
+\usepackage{listings}
+
 \hypersetup{colorlinks=true, linkcolor=black, citecolor=black, urlcolor=blue!70!black}
 
-% --- Code listing style -----------------------------------------------------
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+
 \lstset{
+    language=SQL,
     basicstyle=\ttfamily\small,
     breaklines=true,
     frame=single,
     numbers=left,
-    numberstyle=\tiny\color{gray},
+    numberstyle=\tiny\color{codegray},
     xleftmargin=2em,
-    framexleftmargin=1.5em
+    framexleftmargin=1.5em,
+    keywordstyle=\color{blue}\bfseries,
+    commentstyle=\color{codegreen}\itshape,
+    stringstyle=\color{codepurple},
+    identifierstyle=\color{black},
+    backgroundcolor=\color{backcolour},
+    showstringspaces=false,
 }
 % Pro tip: for syntax highlighting, look into the 'minted' package.
 
@@ -78,7 +89,7 @@
 \newpage
 
 
-\section{Physical Model – Implementation}
+\section{Physical Model - Implementation}
 
 \subsection{List of Tables}
 The following tables have been implemented to represent the cinema management system:
@@ -165,7 +176,7 @@ shifts\_screenings & 1,365 \\
 The distribution of data reflects a realistic cinema operations model:
 \begin{itemize}
     \item \textbf{High-Volume Sales}: 10,000 sales across 1,000 screenings simulate a realistic average of 10 tickets sold per screening.
-    \item \textbf{Junction Table Logic}: 
+    \item \textbf{Junction Table Logic}:
     \begin{itemize}
         \item \textbf{Actors/Films}: On average, 3 actors are assigned per film (596 records for 200 films).
         \item \textbf{Shifts/Screenings}: Each staff shift (300 total) covers approximately 4.5 screenings, representing a standard 8-hour workday.
@@ -175,315 +186,222 @@ The distribution of data reflects a realistic cinema operations model:
 \newpage
 
 
-\section{Design of the Relational Model}
-\label{sec:implementation}
+\section{Searching for information about films}
+\subsection{Process Description}
 
-\subsection{Relational Model Diagram}
-
-\includegraphics[width=1\textwidth]{../assets/UML}
-
-\subsection{Table Descriptions}
-
-All primary keys are surrogate keys of type \texttt{SMALLSERIAL}. This approach provides better performance for joins and ensures that the primary identifier remains immutable even if business data (such as a film title or employee name) changes.
-
-\bigskip
-
-% 1. STAFF
-\textbf{Table: Staff} \\
-\textit{Purpose:} Stores information about employees.
-\begin{itemize}
-    \item \textbf{Attributes:}
-    \begin{itemize}
-        \item \texttt{id} (\texttt{SMALLSERIAL}): PK, NOT NULL. Unique identifier.
-        \item \texttt{name} (\texttt{VARCHAR(32)}): NOT NULL.
-        \item \texttt{surname} (\texttt{VARCHAR(32)}): NOT NULL.
-        \item \texttt{age} (\texttt{SMALLINT}): CHECK (age $\ge$ 15).
-        \item \texttt{position} (\texttt{ENUM}): NOT NULL. Role within the cinema.
-        \item \texttt{working\_since} (\texttt{DATE}): DEFAULT CURRENT\_DATE.
-    \end{itemize}
-    \item \textbf{PK Choice:} Artificial (\texttt{id}). Natural keys (name + surname) are non-unique.
-\end{itemize}
-
-% 2. SHIFT
-\textbf{Table: Shift} \\
-\textit{Purpose:} Logs the working hours assigned to specific staff members.
-\begin{itemize}
-    \item \textbf{Attributes:}
-    \begin{itemize}
-        \item \texttt{id} (\texttt{SMALLSERIAL}): PK, NOT NULL. Unique identifier.
-        \item \texttt{description} (\texttt{VARCHAR(512)}): Description of work for shift.
-        \item \texttt{start\_time} (\texttt{TIMESTAMP}): NOT NULL.
-        \item \texttt{end\_time} (\texttt{TIMESTAMP}): NOT NULL, CHECK (end\_time $>$ start\_time).
-        \item \texttt{staff\_id} (\texttt{SMALLINT}): FK, NOT NULL. References \texttt{Staff(id)}.
-    \end{itemize}
-    \item \textbf{PK Choice:} Artificial (\texttt{id}).
-\end{itemize}
-
-% 3. SHIFTSCREENING
-\textbf{Table: ShiftScreening} \\
-\textit{Purpose:} Junction table realizing the M:N relationship between Shifts and Screenings.
-\begin{itemize}
-    \item \textbf{Attributes:}
-    \begin{itemize}
-        \item \texttt{id} (\texttt{SMALLSERIAL}): PK, NOT NULL. Unique identifier.
-        \item \texttt{shift\_id} (\texttt{SMALLINT}): FK, NOT NULL. References \texttt{Shift(id)}.
-        \item \texttt{screening\_id} (\texttt{SMALLINT}): FK, NOT NULL. References \texttt{Screening(id)}.
-    \end{itemize}
-\end{itemize}
-
-% 4. SCREENING
-\textbf{Table: Screening} \\
-\textit{Purpose:} Represents a specific instance of a film being shown in a hall.
-\begin{itemize}
-    \item \textbf{Attributes:}
-    \begin{itemize}
-        \item \texttt{id} (\texttt{SMALLSERIAL}): PK, NOT NULL. Unique identifier.
-        \item \texttt{start\_time} (\texttt{TIMESTAMP}): NOT NULL.
-        \item \texttt{language} (\texttt{ENUM}): Audio/Subtitle configuration.
-        \item \texttt{film\_id} (\texttt{SMALLINT}): FK, NOT NULL. References \texttt{Film(id)}.
-        \item \texttt{hall\_id} (\texttt{SMALLINT}): FK, NOT NULL. References \texttt{Hall(id)}.
-    \end{itemize}
-    \item \textbf{PK Choice:} Artificial (\texttt{id}).
-\end{itemize}
-
-% 5. HALL
-\textbf{Table: Hall} \\
-\textit{Purpose:} Defines the physical spaces where screenings occur.
-\begin{itemize}
-    \item \textbf{Attributes:}
-    \begin{itemize}
-        \item \texttt{id} (\texttt{SMALLSERIAL}): PK, NOT NULL. Unique identifier.
-        \item \texttt{name} (\texttt{VARCHAR(16)}): UNIQUE, NOT NULL.
-        \item \texttt{capacity} (\texttt{SMALLINT}): NOT NULL, CHECK (capacity $>$ 0).
-    \end{itemize}
-    \item \textbf{PK Choice:} Artificial (\texttt{id}). Allows for renaming halls without breaking relations.
-\end{itemize}
-
-% 6. SALE
-\textbf{Table: Sale} \\
-\textit{Purpose:} Records ticket transactions and customer data.
-\begin{itemize}
-    \item \textbf{Attributes:}
-    \begin{itemize}
-        \item \texttt{id} (\texttt{SMALLSERIAL}): PK, NOT NULL. Unique identifier.
-        \item \texttt{customer\_name} (\texttt{VARCHAR(32)}): NOT NULL.
-        \item \texttt{customer\_surname} (\texttt{VARCHAR(32)}): NOT NULL.
-        \item \texttt{customer\_age} (\texttt{SMALLINT}): CHECK (customer\_age $\ge$ 0).
-        \item \texttt{screening\_id} (\texttt{SMALLINT}): FK, NOT NULL. References \texttt{Screening(id)}.
-    \end{itemize}
-    \item \textbf{PK Choice:} Artificial (\texttt{id}).
-\end{itemize}
-
-% 7. FILM
-\textbf{Table: Film} \\
-\textit{Purpose:} Stores information about films that have been, are, and will be shown in the cinema.
-\begin{itemize}
-    \item \textbf{Attributes:}
-    \begin{itemize}
-        \item \texttt{id} (\texttt{SMALLSERIAL}): PK, NOT NULL. Unique identifier.
-        \item \texttt{name} (\texttt{VARCHAR(256)}): NOT NULL.
-        \item \texttt{duration} (\texttt{SMALLINT}): NOT NULL, CHECK (duration $>$ 0).
-        \item \texttt{age\_group} (\texttt{ENUM}): Rating for content suitability.
-    \end{itemize}
-    \item \textbf{PK Choice:} Artificial (\texttt{id}). Film titles can be remade or duplicated.
-\end{itemize}
-
-% 8. ACTORFILM
-\textbf{Table: ActorFilm} \\
-\textit{Purpose:} Junction table realizing the M:N relationship between Actors and Films.
-\begin{itemize}
-    \item \textbf{Attributes:}
-    \begin{itemize}
-        \item \texttt{id} (\texttt{SMALLSERIAL}): PK, NOT NULL. Unique identifier.
-        \item \texttt{actor\_id} (\texttt{SMALLINT}): FK, NOT NULL. References \texttt{Actor(id)}.
-        \item \texttt{film\_id} (\texttt{SMALLINT}): FK, NOT NULL. References \texttt{Film(id)}.
-    \end{itemize}
-\end{itemize}
-
-% 9. ACTOR
-\textbf{Table: Actor} \\
-\textit{Purpose:} Stores information about actors participating in films.
-\begin{itemize}
-    \item \textbf{Attributes:}
-    \begin{itemize}
-        \item \texttt{id} (\texttt{SMALLSERIAL}): PK, NOT NULL. Unique identifier.
-        \item \texttt{name} (\texttt{VARCHAR(32)}): NOT NULL.
-        \item \texttt{surname} (\texttt{VARCHAR(32)}): NOT NULL.
-    \end{itemize}
-    \item \textbf{PK Choice:} Artificial (\texttt{id}). Natural keys (name + surname) are non-unique.
-\end{itemize}
-
-% 10. FILMGENRE
-\textbf{Table: FilmGenre} \\
-\textit{Purpose:} Junction table realizing the M:N relationship between Films and Genres.
-\begin{itemize}
-    \item \textbf{Attributes:}
-    \begin{itemize}
-        \item \texttt{id} (\texttt{SMALLSERIAL}): PK, NOT NULL.
-        \item \texttt{film\_id} (\texttt{SMALLINT}): FK, NOT NULL. References \texttt{Film(id)}.
-        \item \texttt{genre\_id} (\texttt{SMALLINT}): FK, NOT NULL. References \texttt{Genre(id)}.
-    \end{itemize}
-\end{itemize}
-
-% 11. GENRE
-\textbf{Table: Genre} \\
-\textit{Purpose:} A dictionary table for film genre categories.
-\begin{itemize}
-    \item \textbf{Attributes:}
-    \begin{itemize}
-        \item \texttt{id} (\texttt{SMALLSERIAL}): PK, NOT NULL.
-        \item \texttt{name} (\texttt{VARCHAR(32)}): UNIQUE, NOT NULL.
-    \end{itemize}
-    \item \textbf{PK Choice:} Artificial (\texttt{id}).
-\end{itemize}
-
-% 12. FILMSTUDIO
-\textbf{Table: FilmStudio} \\
-\textit{Purpose:} Junction table realizing the M:N relationship between Films and Studios.
-\begin{itemize}
-    \item \textbf{Attributes:}
-    \begin{itemize}
-        \item \texttt{id} (\texttt{SMALLSERIAL}): PK, NOT NULL.
-        \item \texttt{film\_id} (\texttt{SMALLINT}): FK, NOT NULL. References \texttt{Film(id)}.
-        \item \texttt{studio\_id} (\texttt{SMALLINT}): FK, NOT NULL. References \texttt{Studio(id)}.
-    \end{itemize}
-\end{itemize}
-
-% 13. STUDIO
-\textbf{Table: Studio} \\
-\textit{Purpose:} Stores information about film production studios.
-\begin{itemize}
-    \item \textbf{Attributes:}
-    \begin{itemize}
-        \item \texttt{id} (\texttt{SMALLSERIAL}): PK, NOT NULL.
-        \item \texttt{name} (\texttt{VARCHAR(32)}): UNIQUE, NOT NULL.
-    \end{itemize}
-    \item \textbf{PK Choice:} Artificial (\texttt{id}).
-\end{itemize}
-\newpage
-
-
-\subsection{Description of Relationships}
-
-\begin{table}[h]
-\centering
-\small
-\begin{tabular}{|l|c|l|c|l|}
-\hline
-\textbf{Relationship} & \textbf{Type} & \textbf{Physical Realization} & \textbf{Optionality} \\ \hline
-Staff $\rightarrow$ Shift & 1:N & FK in Shift & Optional \\
-Shift $\rightarrow$ ShiftScreening & 1:N & FK in ShiftScreening & Optional \\
-Screening $\rightarrow$ ShiftScreening & 1:N & FK in ShiftScreening & Optional \\
-Hall $\rightarrow$ Screening & 1:N & FK in Screening & Optional \\
-Screening $\rightarrow$ Sale & 1:N & FK in Sale & Optional \\
-Film $\rightarrow$ Screening & 1:N & FK in Screening & Optional \\
-Film $\rightarrow$ ActorFilm & 1:N & FK in ActorFilm & Optional \\
-Actor $\rightarrow$ ActorFilm & 1:N & FK in ActorFilm & Mandatory \\
-Film $\rightarrow$ FilmGenre & 1:N & FK in FilmGenre & Mandatory \\
-Genre $\rightarrow$ FilmGenre & 1:N & FK in FilmGenre & Mandatory \\
-Film $\rightarrow$ FilmStudio & 1:N & FK in FilmStudio & Mandatory \\
-Studio $\rightarrow$ FilmStudio & 1:N & FK in FilmStudio & Mandatory \\
-\hline
-\end{tabular}
-\end{table}
-
-\subsubsection{Referential Integrity: ON DELETE Actions}
-
-\begin{table}[h]
-\centering
-\small
-\begin{tabular}{|l|l|}
-\hline
-\textbf{Table} & \textbf{ON DELETE Action} \\ \hline
-\texttt{Staff} & \texttt{RESTRICT} \\ \hline
-\texttt{Shift} & \texttt{RESTRICT} \\ \hline
-\texttt{ShiftScreening} & \texttt{RESTRICT} \\ \hline
-\texttt{Screening} & \texttt{RESTRICT} \\ \hline
-\texttt{Hall} & \texttt{RESTRICT} \\ \hline
-\texttt{Sale} & \texttt{RESTRICT} \\ \hline
-\texttt{Film} & \texttt{RESTRICT} \\ \hline
-\texttt{ActorFilm} & \texttt{RESTRICT} \\ \hline
-\texttt{Actor} & \texttt{RESTRICT} \\ \hline
-\texttt{FilmGenre} & \texttt{RESTRICT} \\ \hline
-\texttt{Genre} & \texttt{RESTRICT} \\ \hline
-\texttt{FilmStudio} & \texttt{RESTRICT} \\ \hline
-\texttt{Studio} & \texttt{RESTRICT} \\ \hline
-\end{tabular}
-\end{table}
-
-\subsection{Integrity Constraints Realization}
-
-The integrity constraints described in Chapter 2 (Specification) are implemented in the relational model using a combination of structural constraints, domain restrictions, and business logic checks.
+This process implements User Scenario 2, where a customer seeks detailed information about films based on
+specific criteria. The process involves a two step interaction:
 
 \begin{itemize}
+    \item Filtering: The system filters films based on the actor's name, genre, and production studio. Returns id, name, duration and age group.
+    \item Search for a session: Once a film is identified, the system request its technical details: id, time of session start, language, hall name and amount of free seats.
+\end{itemize}
 
-\item \textbf{Film information completeness}
+\subsection{SQL Implementation}
+The implementation consists of two main queries: one for finding the film and another for fetching screening information.
 
-According to the specification, every film must contain a title, duration, studio, actors, and genres.
+\subsubsection{Query 1: Search by Filters (Actors, Genres, Studios)}
+\begin{lstlisting}
+SELECT DISTINCT
+  f.id,
+  f.name,
+  f.duration,
+  f.age_group
 
-This requirement is implemented using:
+FROM
+  films AS f
+
+JOIN actors_films AS af ON af.film_id = f.id
+JOIN actors AS a ON af.actor_id = a.id AND a.name = '{{name}}' AND a.surname = '{{surname}}'
+
+JOIN films_genres AS fg ON fg.film_id = f.id
+JOIN genres AS g ON g.id = fg.genre_id AND g.name = '{{genre}}'
+
+JOIN films_studios AS fs ON fs.film_id = f.id
+JOIN studios AS s ON s.id = fs.studio_id AND s.name = '{{studio}}';
+\end{lstlisting}
+
+\subsubsection{Query 1: Search by Filters (Actors, Genres, Studios)}
+\begin{lstlisting}
+SELECT
+  s.id,
+  s.start_time,
+  s.language,
+  h.name AS hall_name,
+  h.capacity - COUNT (sl.id) AS free_seats
+
+FROM
+  screenings AS s
+
+JOIN halls AS h on h.id = s.hall_id
+LEFT JOIN sales AS sl ON sl.screening_id = s.id
+WHERE s.film_id = {{film_id}}
+GROUP BY s.id, h.name, s.start_time, s.language, h.capacity
+HAVING h.capacity > COUNT(sl.id)
+ORDER BY start_time ASC
+\end{lstlisting}
+
+\subsection{Execution Demonstration (Seed Data)}
+\subsubsection{First request}
+Input parameters:
 \begin{itemize}
-    \item \texttt{NOT NULL} constraints on \texttt{Film.name} and \texttt{Film.duration}.
-    \item A \texttt{CHECK (duration > 0)} constraint to ensure valid film length.
-    \item Junction tables \texttt{ActorFilm}, \texttt{FilmGenre}, and \texttt{FilmStudio} that associate films with actors, genres, and studios.
+    \item name: Johnny Brown
+    \item surname: Johnny Brown
+    \item genre: Sci-Fi
+    \item studio: Blackwell, Burke and Mal Studio
 \end{itemize}
-
-\item \textbf{Hall capacity limitation}
-
-A ticket cannot be sold if the number of sold tickets exceeds the capacity of the hall where the screening is held.
-
-This rule is implemented by:
+\begin{lstlisting}
+76	Chance partner	168	PG
+\end{lstlisting}
+\subsubsection{Second request}
+Input parameters:
 \begin{itemize}
-    \item Storing hall capacity in the \texttt{Hall.capacity} attribute.
-    \item Linking ticket sales to screenings through the \texttt{Sale.screening\_id} foreign key.
-    \item Verifying during ticket insertion that the number of existing sales for a screening does not exceed the capacity of the related hall. This rule can be implemented using an application-level validation.
+    \item film\_id: 76
 \end{itemize}
+\begin{lstlisting}
+808	2025-05-29 19:41:59.970707	SK	Hall 2	145
+812	2025-05-30 19:19:45.029535	SK	Hall 4	38
+293	2025-07-03 07:37:26.525007	SK	Hall 6	91
+743	2025-09-24 17:43:31.206608	SK	Hall 1	94
+843	2026-01-03 21:18:57.909676	EN	Hall 7	32
+471	2026-01-16 16:31:16.613	        EN	Hall 3	138
+265	2026-03-21 03:46:04.663704	UA	Hall 6	91
+811	2026-04-26 01:56:23.792835	SK	Hall 7	42
+\end{lstlisting}
+\subsection{Supporting Indexes}
+To optimize the performance of joins and filtering operations, the following indexes were implemented:
+\subsubsection{Inxeis for first request}
+\begin{lstlisting}
+CREATE INDEX idx_actors_name ON actors(name);
+CREATE INDEX idx_actors_surname ON actors(surname);
+CREATE INDEX idx_actors_films_composite ON actors_films(actor_id, film_id);
+CREATE INDEX idx_films_genres_composite ON films_genres(genre_id, film_id);
+CREATE INDEX idx_films_studios_composite ON films_studios(studio_id, film_id);
+\end{lstlisting}
+Total execution time reduced by 32.2\%, from 12.68 ms to 8.60 ms.
 
-\item \textbf{Age restriction for films}
+In this context, the implementation of indexes is fully justified.
+The addition of new films, actors, or studios is a relatively infrequent write operation that does not demand near-instantaneous response times.
+In contrast, the search functionality is a high-frequency read operation that is critical to the user experience.
+Optimizing search performance is essential for maintaining user engagement and ensuring a fluid interface,
+making the slight overhead on data modification a necessary and beneficial trade-off.
 
-A ticket cannot be sold if the customer's age does not satisfy the age rating of the film.
+\subsubsection{Inxeis for first request}
+\begin{lstlisting}
+CREATE INDEX idx_screenings_film_start ON screenings(film_id, start_time);
+CREATE INDEX idx_sales_screening_id ON sales(screening_id);
+\end{lstlisting}
+Total execution time reduced by 49\%, from 6.55 ms to 3.35 ms.
 
-This rule is enforced by:
-\begin{itemize}
-    \item Storing the film rating in the \texttt{Film.age\_group} attribute.
-    \item Recording the customer's age in \texttt{Sale.customer\_age}.
-    \item Comparing these values during ticket purchase using an application-level validation.
-\end{itemize}
+The implementation of indexes for this process is similarly essential.
+While data regarding screenings and films is updated only a few times a day, the volume of search requests for available showtimes is significantly higher.
+In a competitive environment, user retention is directly linked to the speed at which the system can display real-time availability.
+By indexing these tables, we ensure that the complex calculations for free seats and chronological sorting remain highly responsive even under heavy load,
+prioritizing the customer's need for instant information over the overhead of infrequent data updates.
 
-\item \textbf{Non-overlapping screenings in the same hall}
+\section{Performance Optimization and Indexing Analysis}
+The following indexes were created to optimize the critical paths of application.
+These focus on reducing full table scans and improving join efficiency for many-to-many relationships.
+\begin{lstlisting}
+CREATE INDEX idx_actors_name ON actors(name);
+CREATE INDEX idx_actors_surname ON actors(surname);
+CREATE INDEX idx_actors_films_composite ON actors_films(actor_id, film_id);
+CREATE INDEX idx_films_genres_composite ON films_genres(genre_id, film_id);
+CREATE INDEX idx_films_studios_composite ON films_studios(studio_id, film_id);
 
-At any given time only one screening can take place in a hall.
+CREATE INDEX idx_screenings_film_start ON screenings(film_id, start_time);
+CREATE INDEX idx_sales_screening_id ON sales(screening_id);
 
-This constraint is implemented by:
-\begin{itemize}
-    \item Storing the start time of each screening in \texttt{Screening.start\_time}.
-    \item Linking screenings to halls using the \texttt{hall\_id} foreign key.
-    \item Checking that the time interval of a new screening does not overlap with existing screenings in the same hall.
-\end{itemize}
+CREATE INDEX idx_screenings_hall_start_film
+\end{lstlisting}
 
-\item \textbf{General relational integrity}
+To demonstrate the impact, we analyzed the execution of the queries before and after indexing.
 
-Basic database integrity is ensured through:
-\begin{itemize}
-    \item \textbf{Entity integrity}: every table has a \texttt{PRIMARY KEY} (\texttt{id}).
-    \item \textbf{Referential integrity}: relationships between entities are enforced using \texttt{FOREIGN KEY} constraints.
-    \item \textbf{Domain integrity}: implemented using appropriate data types and \texttt{CHECK} constraints (for example age limits, positive durations, and valid shift times).
-\end{itemize}
+Before Indexing:
+\begin{lstlisting}
+Unique  (cost=70.34..70.35 rows=1 width=25) (actual time=3.137..3.142 rows=1 loops=1)
+->Sort  (cost=70.34..70.34 rows=1 width=25) (actual time=3.136..3.140 rows=1 loops=1)
+    Sort Key: f.id, f.name, f.duration, f.age_group
+    Sort Method: quicksort  Memory: 25kB
+    ->Nested Loop  (cost=34.61..70.33 rows=1 width=25) (actual time=1.850..3.115 rows=1 loops=1)
+        Join Filter: (fg.genre_id = g.id)
+        Rows Removed by Join Filter: 1
+        ->Nested Loop  (cost=34.61..51.32 rows=1 width=27) (actual time=1.840..3.101 rows=2 loops=1)
+            Join Filter: (af.film_id = f.id)
+            Rows Removed by Join Filter: 70
+            ->Hash Join  (cost=29.60..35.58 rows=1 width=31) (actual time=0.216..0.278 rows=24 loops=1)
+                Hash Cond: (fg.film_id = f.id)
+                ->Seq Scan on films_genres fg  (cost=0.00..4.89 rows=289 width=4) (actual time=0.013..0.036 rows=289 loops=1)
+                ->Hash  (cost=29.59..29.59 rows=1 width=27) (actual time=0.186..0.188 rows=16 loops=1)
+                    Buckets: 1024  Batches: 1  Memory Usage: 9kB
+                    ->Hash Join  (cost=24.83..29.59 rows=1 width=27) (actual time=0.136..0.176 rows=16 loops=1)
+                        Hash Cond: (f.id = fs.film_id)
+                        ->Seq Scan on films f  (cost=0.00..4.00 rows=200 width=25) (actual time=0.005..0.022 rows=200 loops=1)
+                        ->Hash  (cost=24.81..24.81 rows=1 width=2) (actual time=0.114..0.115 rows=16 loops=1)
+                            Buckets: 1024  Batches: 1  Memory Usage: 9kB
+                            ->Hash Join  (cost=19.01..24.81 rows=1 width=2) (actual time=0.051..0.106 rows=16 loops=1)
+                                Hash Cond: (fs.studio_id = s.id)
+                                ->Seq Scan on films_studios fs  (cost=0.00..5.01 rows=301 width=4) (actual time=0.008..0.032 rows=301 loops=1)
+                                ->Hash  (cost=19.00..19.00 rows=1 width=2) (actual time=0.020..0.020 rows=1 loops=1)
+                                    Buckets: 1024  Batches: 1  Memory Usage: 9kB
+                                    ->Seq Scan on studios s  (cost=0.00..19.00 rows=1 width=2) (actual time=0.010..0.011 rows=1 loops=1)
+                                        Filter: ((name)::text = 'Blackwell, Burke and Mal Studio'::text)
+                                        Rows Removed by Filter: 19
+            ->Hash Join  (cost=5.01..15.70 rows=3 width=2) (actual time=0.050..0.117 rows=3 loops=24)
+                Hash Cond: (af.actor_id = a.id)
+                ->Seq Scan on actors_films af  (cost=0.00..9.06 rows=606 width=4) (actual time=0.004..0.053 rows=606 loops=24)
+                ->Hash  (cost=5.00..5.00 rows=1 width=2) (actual time=0.034..0.035 rows=1 loops=1)
+                    Buckets: 1024  Batches: 1  Memory Usage: 9kB
+                    ->Seq Scan on actors a  (cost=0.00..5.00 rows=1 width=2) (actual time=0.006..0.029 rows=1 loops=1)
+                        Filter: (((name)::text = 'Johnny'::text) AND ((surname)::text = 'Brown'::text))
+                        Rows Removed by Filter: 199
+        ->Seq Scan on nres g  (cost=0.00..19.00 rows=1 width=2) (actual time=0.005..0.006 rows=1 loops=2)
+            Filter: ((name)::text = 'Sci-Fi'::text)
+            Rows Removed by Filter: 9
+Planning Time: 4.357 ms
+Execution Time: 3.312 ms
+\end{lstlisting}
+The query performed multiple Sequential Scans on joining tables, leading to a high execution time due to the complexity of three many-to-many joins.
 
-\end{itemize}
-
-These mechanisms ensure that the database structure enforces the main business rules defined in the system specification.
-\subsection{User Scenario Verification}
-
-The proposed relational model fully supports the required system functionality:
-
-\begin{itemize}
-    \item \textbf{Purchasing \& Information (Scenarios 1, 2, 6):} Handled by \texttt{Film}, \texttt{Screening}, and \texttt{Sale} tables. Metadata (actors, genres, studios) is managed through junction tables (\texttt{ActorFilm}, \texttt{FilmGenre}, \texttt{FilmStudio}).
-    \item \textbf{Session Management (Scenarios 4):} Administrators manage the \texttt{Screening} table. The \texttt{hall\_id} and \texttt{start\_time} attributes allow for overlap checks and scheduling.
-    \item \textbf{Staff \& Shifts (Scenarios 3, 5):} Personnel work hours are tracked in the \texttt{Shift} table. Responsibility for specific screenings is recorded via the \texttt{ShiftScreening} junction table, linking \texttt{Staff} to \texttt{Screening}.
-\end{itemize}
-% \newpage
-
+After Indexing:
+\begin{lstlisting}
+Unique  (cost=22.23..22.24 rows=1 width=25) (actual time=0.408..0.410 rows=1 loops=1)
+->Sort  (cost=22.23..22.23 rows=1 width=25) (actual time=0.408..0.409 rows=1 loops=1)
+    Sort Key: f.id, f.name, f.duration, f.age_group
+    Sort Method: quicksort  Memory: 25kB
+    ->Nested Loop  (cost=9.04..22.22 rows=1 width=25) (actual time=0.223..0.395 rows=1 loops=1)
+        ->Nested Loop  (cost=8.90..21.98 rows=1 width=27) (actual time=0.217..0.385 rows=6 loops=1)
+            ->Nested Loop  (cost=8.75..21.79 rows=1 width=8) (actual time=0.211..0.375 rows=6 loops=1)
+                ->Nested Loop  (cost=8.60..21.28 rows=1 width=10) (actual time=0.059..0.324 rows=97 loops=1)
+                    ->Nested Loop  (cost=8.46..18.81 rows=1 width=6) (actual time=0.048..0.166 rows=61 loops=1)
+                        ->Hash Join  (cost=8.18..13.83 rows=1 width=2) (actual time=0.035..0.056 rows=20 loops=1)
+                            Hash Cond: (fg.genre_id = g.id)
+                            ->Seq Scan on films_genres fg  (cost=0.00..4.89 rows=289 width=4) (actual time=0.007..0.015 rows=289 loops=1)
+                            ->Hash  (cost=8.17..8.17 rows=1 width=2) (actual time=0.017..0.017 rows=1 loops=1)
+                                Buckets: 1024  Batches: 1  Memory Usage: 9kB
+                                ->Index Scan using genres_name_key on genres g  (cost=0.15..8.17 rows=1 width=2) (actual time=0.011..0.012 rows=1 loops=1)
+                                    Index Cond: ((name)::text = 'Sci-Fi'::text)
+                        ->Index Only Scan using idx_actors_films_composite on actors_films af  (cost=0.28..4.95 rows=3 width=4) (actual time=0.003..0.005 rows=3 loops=20)
+                            Index Cond: (film_id = fg.film_id)
+                            Heap Fetches: 61
+                    ->Index Only Scan using idx_films_studios_composite on films_studios fs  (cost=0.15..2.45 rows=2 width=4) (actual time=0.002..0.002 rows=2 loops=61)
+                        Index Cond: (film_id = af.film_id)
+                        Heap Fetches: 97
+                ->Index Scan using studios_pkey on studios s  (cost=0.15..0.33 rows=1 width=2) (actual time=0.000..0.000 rows=0 loops=97)
+                    Index Cond: (id = fs.studio_id)
+                    Filter: ((name)::text = 'Blackwell, Burke and Mal Studio'::text)
+                    Rows Removed by Filter: 1
+            ->Index Scan using films_pkey on films f  (cost=0.14..0.19 rows=1 width=25) (actual time=0.001..0.001 rows=1 loops=6)
+                Index Cond: (id = af.film_id)
+        ->Index Scan using actors_pkey on actors a  (cost=0.14..0.19 rows=1 width=2) (actual time=0.002..0.002 rows=0 loops=6)
+            Index Cond: (id = af.actor_id)
+            Filter: (((name)::text = 'Johnny'::text) AND ((surname)::text = 'Brown'::text))
+            Rows Removed by Filter: 1
+Planning Time: 3.379 ms
+Execution Time: 0.496 ms
+\end{lstlisting}
+While most operations transitioned to Index Scan or Index Only Scan, the query planner occasionally retains a Sequential Scan for specific tables.
+This is expected behavior and technically optimal: when a table contains a very small number of rows, the overhead of navigating an index structure exceeds the cost of a direct memory scan.
 
 \section{Evaluation and Conclusion}
 \label{sec:evaluation}
