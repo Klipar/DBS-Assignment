@@ -613,21 +613,20 @@ Therefore, the index is not justified by the insert query itself, but by the pre
 \section{Evaluation and Conclusion}
 \label{sec:evaluation}
 
-The proposed solution implements the basic logic of a potential cinema.
-The scheme does not implement budget calculation and salary payment, specific events within the cinema, does not allow creating accounts on the platform, etc.
+The implemented physical database supports the main cinema processes required for this assignment, including film search, session selection, and screening schedule planning.
+The selected use cases demonstrate both read-oriented queries and write-oriented operations, together with the indexes needed to support them efficiently.
 
-Creating the logic model and tables took the most time because it required the most planning and thinking through all possible further requirements and problems from use.
+The most surprising part was the seed data generation.
+It was a new experience for us to create a larger artificial dataset while preserving foreign keys and realistic relationships between tables.
 
-The problems included having difficulties with understanding what logic to implement with \textbf{ON DELETE} actions,
-we learned that in practice most tables use \texttt{RESTRICT}, therefore it was implemented as such.
+During the implementation of the described processes, no bugs were encountered in the original model.
+Therefore, the model did not require structural changes for these use cases.
 
-Some of us have never worked with databases before, therefore this whole experience was quite new and learning-intensive.
+The hardest business rule to express in SQL was checking for overlapping screenings.
+This rule was more complex than simple filtering or insertion because the system had to compare two time intervals:
+the planned screening interval and the intervals of existing screenings in the same hall.
+The use of the \texttt{OVERLAPS} operator made the final query compact, but the logic still required careful thinking about film duration and hall availability.
 
-The development process was built around requirements generation and adapting the database schema to meet these requirements.
-That said, it was a very iterative process, and we had to go back and forth between the specification and the implementation several times to ensure that all requirements were properly addressed in the database design.
-
-AI was used to assist with formatting the text style since \LaTeX\ is not used much by us.
-
-This topic was chosen because of its versatility to form a fairly simple data scheme with a few tables and also deepen it by adding more details and complex dependencies.
+We used AI to consult on performance optimization and indexing strategies, which helped us understand the trade-offs between read and write performance.
 
 \end{document}
